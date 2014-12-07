@@ -14,8 +14,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        qwindow.cpp
+        qwindow.cpp \
+    login.cpp
 
-HEADERS  += qwindow.h
+HEADERS  += qwindow.h \
+    login.h
 
-FORMS    += qwindow.ui
+FORMS    += qwindow.ui \
+    login.ui
