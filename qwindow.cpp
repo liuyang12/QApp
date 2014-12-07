@@ -9,7 +9,7 @@ QWindow::QWindow(QWidget *parent) :
     ui(new Ui::QWindow)
 {
     ui->setupUi(this);
-    QMessageBox::warning(0, tr("info"), tr("Hello World!"), QMessageBox::Ok);
+//    QMessageBox::warning(0, tr("info"), tr("Hello World!"), QMessageBox::Ok);
 
 }
 

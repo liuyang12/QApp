@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>349</width>
     <height>300</height>
    </rect>
   </property>
@@ -16,9 +16,9 @@
   <widget class="QDialogButtonBox" name="buttonConfirm">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>200</y>
-     <width>171</width>
+     <x>63</x>
+     <y>205</y>
+     <width>211</width>
      <height>51</height>
     </rect>
    </property>
@@ -90,10 +90,13 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <pointsize>16</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
+   </property>
+   <property name="text">
+    <string>2012011480</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="EditPassword">
@@ -107,10 +110,16 @@
    </property>
    <property name="font">
     <font>
-     <pointsize>14</pointsize>
-     <weight>75</weight>
-     <bold>true</bold>
+     <pointsize>16</pointsize>
+     <weight>50</weight>
+     <bold>false</bold>
     </font>
+   </property>
+   <property name="text">
+    <string>net2014</string>
+   </property>
+   <property name="echoMode">
+    <enum>QLineEdit::Password</enum>
    </property>
   </widget>
  </widget>
