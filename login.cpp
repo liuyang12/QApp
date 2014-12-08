@@ -1,6 +1,7 @@
 #include "login.h"
 #include "ui_login.h"
 #include <QTextCodec>
+//#include "qtextcodec.h"
 #include <QMessageBox>
 #include <QDebug>
 
@@ -10,31 +11,26 @@ login::login(QWidget *parent) :
 {
     ui->setupUi(this);
     // 设置语言编码格式
-//    QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
+//    QTextCodec::setCodecForLocale(QTextCodec::codecForName("system"));
     // 服务器IP地址、端口初始化
     isConnected = false;
     login::hostAddr = QHostAddress("166.111.180.60");
     login::hostPort = 8000;
     login::tcpSocket = new QTcpSocket(this);
-//    tcpSocket->abort();
-//    tcpSocket->connectToHost(hostAddr, hostPort, QTcpSocket::ReadWrite);
-//    udpSocket->bind(hostPort, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
-//    connect(udpSocket, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
-    // 槽与信号相连
+
     connect(tcpSocket, SIGNAL(connected()), this, SLOT(sendRequest()));
     connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(readResult()));
     connect(tcpSocket, SIGNAL(disconnected()), this, SLOT(ServerDisconnected()));
     connect(tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
 
-
-    // 登陆验证初始化
-    login::LogNumber = tr("");
-    login::LogPassword = tr("");
+    // 登录验证初始化
+//    login::LogNumber = tr("");
+//    login::LogPassword = tr("");
     this->ui->EditNumber->setText(tr("2012011"));
     this->ui->EditPassword->setText(tr(""));
     // 输入框响应回车
-    connect(ui->EditNumber, SIGNAL(returnPressed()), this, SLOT(on_buttonConfirm_accepted()));
-    connect(ui->EditPassword, SIGNAL(returnPressed()), this, SLOT(on_buttonConfirm_accepted()));
+    connect(ui->EditNumber, SIGNAL(returnPressed()), this, SLOT(on_buttonConfirm_clicked()));
+    connect(ui->EditPassword, SIGNAL(returnPressed()), this, SLOT(on_buttonConfirm_clicked()));
 
 }
 
@@ -50,8 +46,6 @@ void login::newConnect()
     {
         tcpSocket->abort();
         tcpSocket->connectToHost(hostAddr, hostPort);
-//        sendRequest();
-//        isConnected = true;
     }
     else
     {
@@ -61,6 +55,7 @@ void login::newConnect()
 // 发送请求，TCP初始化
 void login::sendRequest()
 {
+    isConnected = true;
     qDebug() << LogInfo;
     tcpSocket->write(LogInfo.toStdString().c_str());
 //    QByteArray block;
@@ -105,19 +100,38 @@ void login::readResult()
 //    }
 //    in >> Reply;
     qDebug() << Reply;
-    QMessageBox::information(this, tr("info"), Reply, QMessageBox::Ok);
-    if(Reply == tr("lol"))
+    // 用户登录成功，服务器返回 "lol"
+    // 用户账号格式错误，服务器返回 "Incorrect No."
+    // 密码输入或密码错误，服务器返回 "Please send the correct message."
+    // QMessageBox 点 Ok 之后程序异常退出
+//    QMessageBox::information(NULL, tr("info"), Reply);
+    if(Reply == "lol")
     {
-        QMessageBox::information(this, tr("info"), tr("用户登陆成功"), QMessageBox::Ok);
-//        this->accept();
+        qDebug() << "用户" << LogNumber << "登录成功";
+//        QTextCodec::setCodecForTr( QTextCodec::codecForName("GBK") );
+//        QMessageBox::information(this, tr("info"), tr("用户登录成功"), QMessageBox::Yes);
+        accept();
+        this->close();
+    }
+    else if(Reply == "Incorrect No.")
+    {
+        qDebug() << "用户" << LogNumber << "账号格式错误\n请重新输入。。。";
+//        QMessageBox::information(this, tr("info"), tr("账户格式错误\n请重新输入。。。"));
+    }
+    else if(Reply == "Please send the correct message.")
+    {
+        qDebug() << "用户" << LogNumber << "账号或密码错误\n请重新输入。。。";
+//        QMessageBox::information(this, tr("info"), tr("账号或密码错误\n请重新输入。。。"));
+    }
+    else if(Reply == "")
+    {
+        qDebug() << "用户" << LogNumber << "未收到用户请求结果，请检查：\n1. 用户网络状态\n2. 服务器地址和端口号（默认166.111.180.60:8000）";
+//        QMessageBox::information(this, tr("info"), tr("未收到用户请求结果，请检查：\n1. 用户网络状态\n2. 服务器地址和端口号（默认166.111.180.60:8000）"));
     }
     else
     {
-        QMessageBox::warning(this, tr("warning"), tr("用户登陆失败\n提示：用户名或密码错误\n请重新输入。。。"), QMessageBox::Ok);
-        this->ui->EditNumber->setText(tr("2012011"));
-        this->ui->EditPassword->setText(tr(""));
-//        this->reject();
-
+        qDebug() << "用户" << LogNumber << "404 not found!\ndefault message";
+//        QMessageBox::information(this, tr("info"), tr("404 not found!\ndefault message"));
     }
     blockSize = 0;
 
@@ -163,25 +177,10 @@ void login::displayError(QAbstractSocket::SocketError socketError)
 
 //}
 
-void login::on_buttonConfirm_accepted()
-{
-    /// 登陆验证
-    if(ui->EditNumber->text()/*.trimmed()*/ == tr("") || ui->EditPassword->text()/*.trimmed()*/ == tr(""))  // 判断为空或没有输入，应该不予登陆
-    {
-        QMessageBox::warning(0, tr("Warning"), tr("提示：用户名/密码不能为空！\n请重新输入。。。"), QMessageBox::Ok);
-        this->ui->EditNumber->setText(tr("2012011"));
-        this->ui->EditPassword->setText(tr(""));
-        return ;
-    }
-    else
-    {
-        LogNumber = ui->EditNumber->text()/*.trimmed()*/;
-        LogPassword = ui->EditPassword->text()/*.trimmed()*/;
-        LogInfo = LogNumber + tr("_") + LogPassword;
-        login::newConnect();
+//void login::on_buttonConfirm_accepted()
+//{
 
-    }
-}
+//}
 
 void login::on_EditNumber_textChanged(const QString &arg1)
 {
@@ -196,4 +195,31 @@ void login::on_EditPassword_textChanged(const QString &arg1)
 //    ui->EditPassword->setEchoMode(QLineEdit::PasswordEchoOnEdit);
     // 响应回车
 //    connect(ui->EditPassword, SIGNAL(QLineEdit::returnPressed()), this, SLOT(on_buttonConfirm_accepted()));
+}
+
+void login::on_buttonConfirm_clicked()
+{
+    /// 登录验证
+    if(ui->EditNumber->text()/*.trimmed()*/ == tr("") || ui->EditPassword->text()/*.trimmed()*/ == tr(""))  // 判断为空或没有输入，应该不予登录
+    {
+        qDebug() << "提示：用户名/密码不能为空！\n请重新输入。。。";
+//        QMessageBox::warning(NULL, tr("Warning"), tr("提示：用户名/密码不能为空！\n请重新输入。。。")/*, QMessageBox::Ok*/);
+        this->ui->EditNumber->setText(tr("2012011"));
+        this->ui->EditPassword->setText(tr(""));
+        return ;
+    }
+    else
+    {
+        LogNumber = ui->EditNumber->text()/*.trimmed()*/;
+        LogPassword = ui->EditPassword->text()/*.trimmed()*/;
+        LogInfo = LogNumber + tr("_") + LogPassword;
+        login::newConnect();
+
+    }
+}
+
+void login::on_pushButton_clicked()
+{
+    this->reject();
+    this->close();
 }

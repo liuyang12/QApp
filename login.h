@@ -31,11 +31,15 @@ private slots:
     void ServerDisconnected(void);  // 服务器端断开连接
     void displayError(QAbstractSocket::SocketError);    // 连接错误
 //    void processPendingDatagrams(void);     // 处理接受到信息
-    void on_buttonConfirm_accepted();
+//    void on_buttonConfirm_accepted();
 
     void on_EditNumber_textChanged(const QString &arg1);
 
     void on_EditPassword_textChanged(const QString &arg1);
+
+    void on_buttonConfirm_clicked();
+
+    void on_pushButton_clicked();
 
 private:
     Ui::login *ui;
