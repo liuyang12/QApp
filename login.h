@@ -22,6 +22,7 @@ public:
     QTcpSocket *tcpSocket;       // UdpSocket
     QString LogNumber;         // 登陆用户名
     QString LogPassword;       // 登陆密码
+    QString LogInfo;
     QString Reply;              // 收到的服务器端的回复
 
 private slots:

@@ -2,6 +2,7 @@
 #include "ui_login.h"
 #include <QTextCodec>
 #include <QMessageBox>
+#include <QDebug>
 
 login::login(QWidget *parent) :
     QDialog(parent),
@@ -9,10 +10,10 @@ login::login(QWidget *parent) :
 {
     ui->setupUi(this);
     // 设置语言编码格式
-    QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
+//    QTextCodec::setCodecForLocale(QTextCodec::codecForName("GBK"));
     // 服务器IP地址、端口初始化
     isConnected = false;
-    login::hostAddr = QHostAddress(tr("166.111.180.60"));
+    login::hostAddr = QHostAddress("166.111.180.60");
     login::hostPort = 8000;
     login::tcpSocket = new QTcpSocket(this);
 //    tcpSocket->abort();
@@ -32,8 +33,8 @@ login::login(QWidget *parent) :
     this->ui->EditNumber->setText(tr("2012011"));
     this->ui->EditPassword->setText(tr(""));
     // 输入框响应回车
-    connect(ui->EditNumber, SIGNAL(QLineEdit::returnPressed()), this, SLOT(on_buttonConfirm_accepted()));
-    connect(ui->EditPassword, SIGNAL(QLineEdit::returnPressed()), this, SLOT(on_buttonConfirm_accepted()));
+    connect(ui->EditNumber, SIGNAL(returnPressed()), this, SLOT(on_buttonConfirm_accepted()));
+    connect(ui->EditPassword, SIGNAL(returnPressed()), this, SLOT(on_buttonConfirm_accepted()));
 
 }
 
@@ -49,6 +50,8 @@ void login::newConnect()
     {
         tcpSocket->abort();
         tcpSocket->connectToHost(hostAddr, hostPort);
+//        sendRequest();
+//        isConnected = true;
     }
     else
     {
@@ -58,47 +61,62 @@ void login::newConnect()
 // 发送请求，TCP初始化
 void login::sendRequest()
 {
-    QByteArray block;
-    QDataStream out(&block, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_4_8);
+    qDebug() << LogInfo;
+    tcpSocket->write(LogInfo.toStdString().c_str());
+//    QByteArray block;
+//    QDataStream out(&block, QIODevice::WriteOnly);
+//    out.setVersion(QDataStream::Qt_5_2);
 
-    out << (qint16)0;
-    // 向服务器发送字符串 LogNumber_LogPassword
-    out << LogNumber << "_" << LogPassword;
+//    out << (quint16)0;
+////    out << (qint16)0;
+//    // 向服务器发送字符串 LogNumber_LogPassword
+//    out << LogNumber << "_" << LogPassword;
 
-    out.device()->seek(0);
-    out << (qint16)(block.size() - sizeof(qint16));
-    tcpSocket->write(block);
-    if(!isConnected)
-        isConnected = true;
+//    out.device()->seek(0);
+//    out << (quint16)(block.size() - sizeof(quint16));
+//    tcpSocket->write(block);
+////    QMessageBox::information(this, tr("info"), block.data(), QMessageBox::Ok);
+//    if(!isConnected)
+//        isConnected = true;
+////    QMessageBox::information(this, tr("info"), tr("请求发送成功"), QMessageBox::Ok);
 
 }
 // 读取服务器端的结果
 void login::readResult()
 {
-    QDataStream in(tcpSocket);
-    in.setVersion(QDataStream::Qt_4_8);
+    QByteArray qba;
+    qba = tcpSocket->readAll();
+    Reply =  QVariant(qba).toString();
+//    QMessageBox::information(this, tr("info"), tmp, QMessageBox::Ok);
+//    QDataStream in(tcpSocket);
+//    in.setVersion(QDataStream::Qt_5_2);
 
-    if(0 == blockSize)
-    {
-        if(tcpSocket->bytesAvailable() < (int)sizeof(qint16))
-            return ;
-        in >> blockSize;
-    }
-    if(tcpSocket->bytesAvailable() < blockSize)
-        return ;
-    in >> Reply;
-    if("lol" == Reply)
+//    if(0 == blockSize)
+//    {
+//        if(tcpSocket->bytesAvailable() < (int)sizeof(quint16))
+//        {
+//            return ;
+//        }
+//        in >> blockSize;
+//    }
+//    if(tcpSocket->bytesAvailable() < blockSize)
+//    {
+//        return ;
+//    }
+//    in >> Reply;
+    qDebug() << Reply;
+    QMessageBox::information(this, tr("info"), Reply, QMessageBox::Ok);
+    if(Reply == tr("lol"))
     {
         QMessageBox::information(this, tr("info"), tr("用户登陆成功"), QMessageBox::Ok);
-        this->accept();
+//        this->accept();
     }
     else
     {
         QMessageBox::warning(this, tr("warning"), tr("用户登陆失败\n提示：用户名或密码错误\n请重新输入。。。"), QMessageBox::Ok);
         this->ui->EditNumber->setText(tr("2012011"));
         this->ui->EditPassword->setText(tr(""));
-        this->reject();
+//        this->reject();
 
     }
     blockSize = 0;
@@ -148,7 +166,7 @@ void login::displayError(QAbstractSocket::SocketError socketError)
 void login::on_buttonConfirm_accepted()
 {
     /// 登陆验证
-    if(this->ui->EditNumber->text().trimmed() == tr("") || this->ui->EditPassword->text().trimmed() == tr(""))  // 判断为空或没有输入，应该不予登陆
+    if(ui->EditNumber->text()/*.trimmed()*/ == tr("") || ui->EditPassword->text()/*.trimmed()*/ == tr(""))  // 判断为空或没有输入，应该不予登陆
     {
         QMessageBox::warning(0, tr("Warning"), tr("提示：用户名/密码不能为空！\n请重新输入。。。"), QMessageBox::Ok);
         this->ui->EditNumber->setText(tr("2012011"));
@@ -157,8 +175,9 @@ void login::on_buttonConfirm_accepted()
     }
     else
     {
-        LogNumber = this->ui->EditNumber->text().trimmed();
-        LogPassword  =this->ui->EditPassword->text().trimmed();
+        LogNumber = ui->EditNumber->text()/*.trimmed()*/;
+        LogPassword = ui->EditPassword->text()/*.trimmed()*/;
+        LogInfo = LogNumber + tr("_") + LogPassword;
         login::newConnect();
 
     }
@@ -174,7 +193,7 @@ void login::on_EditNumber_textChanged(const QString &arg1)
 void login::on_EditPassword_textChanged(const QString &arg1)
 {
     LogPassword = arg1;     // 更新输入框密码
-    ui->EditPassword->setEchoMode(QLineEdit::PasswordEchoOnEdit);
+//    ui->EditPassword->setEchoMode(QLineEdit::PasswordEchoOnEdit);
     // 响应回车
 //    connect(ui->EditPassword, SIGNAL(QLineEdit::returnPressed()), this, SLOT(on_buttonConfirm_accepted()));
 }
