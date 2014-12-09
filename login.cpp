@@ -16,6 +16,10 @@ login::login(QWidget *parent) :
     isConnected = false;
     login::hostAddr = QHostAddress("166.111.180.60");
     login::hostPort = 8000;
+    ui->Edit_ServerAddr->setText(hostAddr.toString());
+    ui->Edit_ServerPort->setText("8000");
+    ui->Edit_ServerAddr->setDisabled(true);
+    ui->Edit_ServerPort->setDisabled(true);
     login::tcpSocket = new QTcpSocket(this);
 
     connect(tcpSocket, SIGNAL(connected()), this, SLOT(sendRequest()));
@@ -42,6 +46,24 @@ login::~login()
 void login::newConnect()
 {
     login::blockSize = 0;
+    //用正则表达式来保证输入的是合法的服务器地址
+    QRegExp regExp;
+    regExp.setPattern("\\b((?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.)"
+        "{3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d))\\b");
+    if(!regExp.exactMatch(ui->Edit_ServerAddr->text()))
+    {
+        QMessageBox::critical(this, tr("Error"),
+            tr("Ip address's Format is wrong. Please try again"));
+        return;
+    }
+    if(ui->Edit_ServerAddr->text().isEmpty())
+    {
+        QMessageBox::critical(this, tr("Error"),
+            tr("The server port line can not be empty"));
+        return;
+    }
+    hostAddr = ui->Edit_ServerAddr->text();
+    hostPort = ui->Edit_ServerPort->text().toInt();
     if(!isConnected)
     {
         tcpSocket->abort();
@@ -51,6 +73,8 @@ void login::newConnect()
     {
         sendRequest();
     }
+    ui->Edit_ServerAddr->setDisabled(true);
+    ui->Edit_ServerPort->setDisabled(true);
 }
 // 发送请求，TCP初始化
 void login::sendRequest()
@@ -104,7 +128,7 @@ void login::readResult()
     // 用户账号格式错误，服务器返回 "Incorrect No."
     // 密码输入或密码错误，服务器返回 "Please send the correct message."
     // QMessageBox 点 Ok 之后程序异常退出
-    QMessageBox::information(this, tr("info"), Reply);
+//    QMessageBox::information(this, tr("info"), Reply);
     if(Reply == "lol")
     {
         qDebug() << "用户" << LogNumber << "登录成功";
@@ -222,4 +246,11 @@ void login::on_pushButton_clicked()
 {
     this->reject();
     this->close();
+}
+
+void login::on_Button_ConfigServer_clicked()
+{
+    // 允许设置服务器地址
+    ui->Edit_ServerAddr->setDisabled(false);
+    ui->Edit_ServerPort->setDisabled(false);
 }

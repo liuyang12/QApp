@@ -41,6 +41,8 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void on_Button_ConfigServer_clicked();
+
 private:
     Ui::login *ui;
     qint16 blockSize;
