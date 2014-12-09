@@ -104,34 +104,34 @@ void login::readResult()
     // 用户账号格式错误，服务器返回 "Incorrect No."
     // 密码输入或密码错误，服务器返回 "Please send the correct message."
     // QMessageBox 点 Ok 之后程序异常退出
-//    QMessageBox::information(NULL, tr("info"), Reply);
+    QMessageBox::information(this, tr("info"), Reply);
     if(Reply == "lol")
     {
         qDebug() << "用户" << LogNumber << "登录成功";
 //        QTextCodec::setCodecForTr( QTextCodec::codecForName("GBK") );
-//        QMessageBox::information(this, tr("info"), tr("用户登录成功"), QMessageBox::Yes);
+        QMessageBox::information(this, tr("info"), tr("用户登录成功"), QMessageBox::Yes);
         accept();
         this->close();
     }
     else if(Reply == "Incorrect No.")
     {
         qDebug() << "用户" << LogNumber << "账号格式错误\n请重新输入。。。";
-//        QMessageBox::information(this, tr("info"), tr("账户格式错误\n请重新输入。。。"));
+        QMessageBox::information(this, tr("info"), tr("账户格式错误\n请重新输入。。。"));
     }
     else if(Reply == "Please send the correct message.")
     {
         qDebug() << "用户" << LogNumber << "账号或密码错误\n请重新输入。。。";
-//        QMessageBox::information(this, tr("info"), tr("账号或密码错误\n请重新输入。。。"));
+        QMessageBox::information(this, tr("info"), tr("账号或密码错误\n请重新输入。。。"));
     }
     else if(Reply == "")
     {
         qDebug() << "用户" << LogNumber << "未收到用户请求结果，请检查：\n1. 用户网络状态\n2. 服务器地址和端口号（默认166.111.180.60:8000）";
-//        QMessageBox::information(this, tr("info"), tr("未收到用户请求结果，请检查：\n1. 用户网络状态\n2. 服务器地址和端口号（默认166.111.180.60:8000）"));
+        QMessageBox::information(this, tr("info"), tr("未收到用户请求结果，请检查：\n1. 用户网络状态\n2. 服务器地址和端口号（默认166.111.180.60:8000）"));
     }
     else
     {
         qDebug() << "用户" << LogNumber << "404 not found!\ndefault message";
-//        QMessageBox::information(this, tr("info"), tr("404 not found!\ndefault message"));
+        QMessageBox::information(this, tr("info"), tr("404 not found!\ndefault message"));
     }
     blockSize = 0;
 
@@ -203,7 +203,7 @@ void login::on_buttonConfirm_clicked()
     if(ui->EditNumber->text()/*.trimmed()*/ == tr("") || ui->EditPassword->text()/*.trimmed()*/ == tr(""))  // 判断为空或没有输入，应该不予登录
     {
         qDebug() << "提示：用户名/密码不能为空！\n请重新输入。。。";
-//        QMessageBox::warning(NULL, tr("Warning"), tr("提示：用户名/密码不能为空！\n请重新输入。。。")/*, QMessageBox::Ok*/);
+        QMessageBox::warning(NULL, tr("Warning"), tr("提示：用户名/密码不能为空！\n请重新输入。。。")/*, QMessageBox::Ok*/);
         this->ui->EditNumber->setText(tr("2012011"));
         this->ui->EditPassword->setText(tr(""));
         return ;
