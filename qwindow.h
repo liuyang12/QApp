@@ -15,6 +15,11 @@ public:
     explicit QWindow(QWidget *parent = 0);
     ~QWindow();
 
+private slots:
+    void on_button_SearchFriend_clicked();
+
+    void on_action_Logout_triggered();
+
 private:
     Ui::QWindow *ui;
 };
