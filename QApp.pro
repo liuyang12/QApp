@@ -17,7 +17,8 @@ SOURCES += main.cpp\
 	login.cpp
 
 HEADERS  += qwindow.h \
-	login.h
+	login.h \
+    ClassConstant.h
 
 FORMS    += qwindow.ui \
     login.ui
