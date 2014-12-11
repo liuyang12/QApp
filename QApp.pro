@@ -14,11 +14,13 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
 		qwindow.cpp \
-	login.cpp
+	login.cpp \
+    tcplink.cpp
 
 HEADERS  += qwindow.h \
 	login.h \
-    ClassConstant.h
+    classConstant.h \
+    tcplink.h
 
 FORMS    += qwindow.ui \
     login.ui
