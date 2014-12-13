@@ -28,17 +28,30 @@ public:
     QTcpSocket *tcpClient;
     qint16 blockSize;
 
+    void setHostAddr(const ServerNode &node)        // 设置服务器IP地址和端口号
+    {
+        serverNode.hostAddr = node.hostAddr;
+        serverNode.hostPort = node.hostPort;
+    }
+
     // 用户请求
-    void loginRequest(const LoginInfo &login);      // 登录请求
-    void queryRequest(const QString &query);        // 查找好友请求
-    void logoutRequest(const UserInfo &user);       // 登出请求
-    void messageRequest(const Message &msg);        // 会话消息请求
+    void loginRequest(LoginInfo &login/* = loginInfo*/);      // 登录请求
+    void queryRequest(FriendInfo &frd/* = friendInfo*/);        // 查找好友请求
+    void logoutRequest(UserInfo &user/* = userInfo*/);       // 登出请求
+    void messageRequest(Message &msg/* = message*/);        // 会话消息请求
 
 private:
     void newConnect();          // 建立新的TCP连接
 signals:
+    void newReplySignal(qint32 replyKind);  // 新建请求信号
+    void connectionFailedSignal();          // 连接失败信号
+    void disconnectedSignal();              // 断开连接信号
 
 public slots:
+    void sendRequest();         // 向服务器发送信息
+    void readResult();          // 从服务器读取结果
+    void serverDisconnected();  // 与服务器断开连接
+    void displayError(QAbstractSocket::SocketError socketError);        // 提示TCP socket 错误信息
 
 };
 

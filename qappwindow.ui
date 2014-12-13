@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>QWindow</class>
- <widget class="QMainWindow" name="QWindow">
+ <class>QAppWindow</class>
+ <widget class="QMainWindow" name="QAppWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>432</width>
+    <height>342</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>QWindow</string>
+   <string>MainWindow</string>
   </property>
-  <widget class="QWidget" name="centralWidget">
+  <widget class="QWidget" name="centralwidget">
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>12</y>
+      <x>60</x>
+      <y>20</y>
       <width>61</width>
       <height>16</height>
      </rect>
     </property>
     <property name="text">
-     <string>好友账号：</string>
+     <string>查找好友：</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="Edit_FriendNumber">
+   <widget class="QLineEdit" name="Edit_FriendAccount">
     <property name="geometry">
      <rect>
-      <x>100</x>
-      <y>11</y>
-      <width>101</width>
+      <x>120</x>
+      <y>20</y>
+      <width>91</width>
       <height>20</height>
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="button_SearchFriend">
+   <widget class="QPushButton" name="Button_queryFriend">
     <property name="geometry">
      <rect>
-      <x>210</x>
-      <y>9</y>
+      <x>220</x>
+      <y>20</y>
       <width>61</width>
       <height>23</height>
      </rect>
@@ -51,12 +51,12 @@
     </property>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
+  <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
+     <width>432</width>
      <height>23</height>
     </rect>
    </property>
@@ -68,15 +68,7 @@
    </widget>
    <addaction name="menu"/>
   </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-  </widget>
-  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QStatusBar" name="statusbar"/>
   <action name="action_Logout">
    <property name="text">
     <string>&amp;Logout</string>

@@ -1,17 +1,52 @@
 #ifndef CLASSCONSTANT_H
 #define CLASSCONSTANT_H
 // 宏定义以及类与结构体的定义
-#include <QtCore>
-#include <QtGui>
+//#include <QtCore>
+//#include <QtGui>
 #include <QtWidgets>
+#include <QMessageBox>
+#include <QDebug>   // Qt Debug
 //#include <QHostAddress>
-// 服务器端 ServerNode 节点类
+/// 服务器端 ServerNode 节点类
 enum STATUS{    // 状态
-    OFFLINE,    // 离线 = 0
-    ONLINE,     // 在线 = 1
-    TIMEOUT     // 连接超时 = 2
+    OFFLINE = 0,    // 离线 = 0
+    ONLINE = 1,     // 在线 = 1
+    TIMEOUT = 2     // 连接超时 = 2
+};
+enum REQUEST{   // 请求
+    LOGIN = 10,     // 登录 = 10
+    QUERY = 11,     // 查找 = 11
+    LOGOUT = 12,    // 登出 = 12
+    MESSAGE = 13    // 发送信息 = 13
+};
+enum REPLY{     // 回复
+    NO_REPLY = 99,          // 无回复
+    // 登录回复
+    LOGIN_SUCCESS = 20,     // 登录成功 = 20
+    LOGIN_NO_ACCOUNT = 21,  // 用户名格式错误
+    LOGIN_WRONG_INPUT = 22, // 用户名或密码错误
+    HAVE_LOGINED = 23,        // 已经登录
+    // 查找好友回复
+    FRIEND_OFFLINE = 25,    // 好友未在线
+    FRIEND_NO_ACCOUNT = 27, // 无此账号
+    FRIEND_ONLINE = 26,     // 好友在线
+    // 登出回复
+    LOGOUT_SUCCESS = 30,    // 登出成功
+    LOGOUT_FAILED = 31,      // 登出失败
+    // 会话消息回复
+    NO_MESSAGE = 40,        // 无消息
+    NAVE_MESSAGE = 41,      // 有消息
+    HAVE_TALK_MESSAGE = 42  // 有会消息
+
 };
 
+/// 全局变量
+const QRegExp ipRegExp("((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-5]|[01]?\\d\\d?)");       // 判断 IP 地址正则表达式
+// QRegExp ipRegExp("\\b((?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.)""{3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d))\\b");    // 判断 IP 地址正则表达式
+const QRegExp portRegExp("(/^[1-9]$|(^[1-9][0-9]$)|(^[1-9][0-9][0-9]$)|(^[1-9][0-9][0-9][0-9]$)|(^[1-6][0-5][0-5][0-3][0-5]$)/)");    // 判断端口号正则表达式
+const QRegExp macRegExp("([0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2})");    // 判断 MAC 地址正则表达式
+
+/// 结构体定义
 struct ServerNode{
     QString hostAddr;       // 服务器地址
     quint16 hostPort;       // 服务器端口
@@ -78,6 +113,7 @@ struct LoginInfo{
 struct FriendInfo
 {
     QString account;        // 好友账号
+    ServerNode node;        // 好友IP地址节点
     QString name;           // 好友名字
     int avatarNumber;       // 好友头像编号
     int status;             // 好友在线状态
