@@ -83,6 +83,7 @@ void TCPLink::sendRequest()
 
 void TCPLink::readResult()
 {
+    // TODO: 处理向服务器发送请求超时的情况，计时并在超时后发出警告
     QByteArray qba;
     QString Reply;
     QDataStream in(tcpClient);
@@ -145,16 +146,16 @@ void TCPLink::readResult()
         break;
     case QUERY:
         // 正则表达式判断返回是否为IP地址
-        if(ipRegExp.exactMatch(Reply))
+        if(Reply == "n")
+        {
+            replyKind = FRIEND_OFFLINE;
+            friendInfo.status = OFFLINE;
+        }
+        else if(ipRegExp.exactMatch(Reply))
         {
             replyKind = FRIEND_ONLINE;
             friendInfo.status = ONLINE;
             friendInfo.node.hostAddr = Reply;
-        }
-        else if(Reply == "n")
-        {
-            replyKind = FRIEND_OFFLINE;
-            friendInfo.status = OFFLINE;
         }
         else if(Reply == "")
         {

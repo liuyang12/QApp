@@ -15,14 +15,17 @@ TEMPLATE = app
 SOURCES += main.cpp\
 	login.cpp \
     tcplink.cpp \
-    qappwindow.cpp
+    qappwindow.cpp \
+    chatwindow.cpp
 
 HEADERS  += \
 	login.h \
     classConstant.h \
     tcplink.h \
-    qappwindow.h
+    qappwindow.h \
+    chatwindow.h
 
 FORMS    += \
     login.ui \
-    qappwindow.ui
+    qappwindow.ui \
+    chatwindow.ui

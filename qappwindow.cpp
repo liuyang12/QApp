@@ -49,7 +49,7 @@ void QAppWindow::newReply(qint32 replyKind)
         break;
     case FRIEND_OFFLINE:
         qDebug() << "用户" << tcplink->friendInfo.account << "离线";
-        QMessageBox::information(this, tr("info"), tr("用户在线"), QMessageBox::Ok);
+        QMessageBox::information(this, tr("info"), tr("用户离线"), QMessageBox::Ok);
         break;
     case FRIEND_NO_ACCOUNT:
         qDebug() << "用户" << tcplink->friendInfo.account << "查找结果：查找账户错误";
