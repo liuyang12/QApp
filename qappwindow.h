@@ -2,6 +2,8 @@
 #define QAPPWINDOW_H
 
 #include <QMainWindow>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include "tcplink.h"
 
 namespace Ui {
@@ -30,7 +32,11 @@ private slots:
 private:
     Ui::QAppWindow *ui;
 
+    QTcpServer *tcpServer;      // TCP Server
+    QTcpSocket *tcpSocket;      // TCP Socket
+
     TCPLink *tcplink;
+
 signals:
     void reLoginSignal(void);     // 重新登录请求
     void disconnectedSignal(void);
