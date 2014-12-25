@@ -15,11 +15,11 @@ int main(int argc, char *argv[])
 //    log_in.setAttribute(Qt::WA_TranslucentBackground);  // 设置窗口透明，支持 .png 格式图片，在styleSheet中修改
 //    log_in.setStyleSheet("");
     log_in.show();
-//    chatWindow chat;
-////    chat.setWindowOpacity(1);
-//    chat.setWindowFlags(Qt::FramelessWindowHint);       // 设置窗口无边框，暂时可通过alt + f4关闭窗口，之后增加关闭 label
-////    chat.setAttribute(Qt::WA_TranslucentBackground);    // 设置窗口透明，支持 .png 格式图片，在styleSheet中修改
-//    chat.show();
+    chatWindow chat;
+//    chat.setWindowOpacity(1);
+    chat.setWindowFlags(Qt::FramelessWindowHint);       // 设置窗口无边框，暂时可通过alt + f4关闭窗口，之后增加关闭 label
+//    chat.setAttribute(Qt::WA_TranslucentBackground);    // 设置窗口透明，支持 .png 格式图片，在styleSheet中修改
+    chat.show();
 
     return a.exec();
 

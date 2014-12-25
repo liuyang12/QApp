@@ -1,6 +1,5 @@
 #include "qappwindow.h"
 #include "ui_qappwindow.h"
-#include "chatwindow.h"     // 聊天窗口
 
 QAppWindow::QAppWindow(TCPLink* tcplink, QWidget *parent) :
     QMainWindow(parent),
@@ -41,36 +40,12 @@ void QAppWindow::serverDisconnected()
 // 收到新回复 - 服务器或者好友服务器
 void QAppWindow::newReply(qint32 replyKind)
 {
-    QMessageBox friendMsgBox;
-    chatWindow *chat;
 
     switch (replyKind) {
     /** 查找好友结果 */
     case FRIEND_ONLINE:
         qDebug() << "已找到用户" << tcplink->friendInfo.account << "IP地址: " << tcplink->friendInfo.node.hostAddr;
-
-
-        switch(friendMsgBox.question( this, "查找好友",
-                                      "好友在线\n"
-                                      "现在加为好友~",
-                                      "加为好友(&A)", "取消(&C)",
-                                      0     /* Enter == button 0*/
-                                      ))
-        { // Escape == button 1
-        case 0: // “加为好友”或者 ALT + S 按下被
-            // 发出加为好友的请求
-            friendMsgBox.setWindowTitle("loading。。。");
-            friendMsgBox.setText("正在发出好友请求\n"
-                                 "等待加为好友。。。");
-            chat = new chatWindow;
-            chat->show();
-            friendMsgBox.close();
-
-            break;
-        case 1: // Cancel被点击或者Alt+C被按下或者Escape被按下。
-            // 不退出
-            break;
-        }
+        QMessageBox::information(this, tr("info"), tr("用户在线"), QMessageBox::Ok);
         break;
     case FRIEND_OFFLINE:
         qDebug() << "用户" << tcplink->friendInfo.account << "离线";
