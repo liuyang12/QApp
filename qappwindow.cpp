@@ -47,7 +47,7 @@ void QAppWindow::initStatus()
     /** tcplink->friendInfo.tcpSocket = tcpSender */
     connect(tcplink->friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendRequest()));     // 已连接向服务器发送请求
     connect(tcplink->friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
-    connect(tcplink->friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));    // 处理错误信息
+//    connect(tcplink->friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));    // 处理错误信息
 
 
 }
@@ -70,6 +70,14 @@ void QAppWindow::acceptConnection()
     tcplink->friendInfo.tcpSocket = tcpServer->nextPendingConnection();
     tcplink->friendInfo.node.hostAddr = tcplink->friendInfo.tcpSocket->peerAddress().toString();   // 获取客户端IP地址
 //    tcplink->friendInfo.node.hostPort = tcplink->friendInfo.tcpSocket->peerPort();  // 获取客户端端口号
+    qDebug() << "accept connection from client: " << tcplink->friendInfo.node.hostAddr;
+    // 当tcpSocket在接受客户端连接时出现错误时，displayError(QAbstractSocket::SocketError) 处理该信号
+    connect(tcplink->friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+    // 获取发送的数据信息
+    /** tcplink->friendInfo.tcpSocket = tcpSender */
+    connect(tcplink->friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendRequest()));     // 已连接向服务器发送请求
+    connect(tcplink->friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
+//    connect(tcplink->friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));    // 处理错误信息
 }
 // 当tcpSocket在接受客户端连接时出现错误时，displayError(QAbstractSocket::SocketError) 处理该信号
 void QAppWindow::displayError(QAbstractSocket::SocketError)
@@ -81,7 +89,8 @@ void QAppWindow::displayError(QAbstractSocket::SocketError)
 void QAppWindow::newTCPConnect()
 {
     tcplink->friendInfo.tcpSocket->abort();
-    tcplink->friendInfo.tcpSocket->connectToHost(tcplink->friendInfo.node.hostAddr, tcplink->friendInfo.node.hostPort); // 连接到 待加好友服务器，IP地址为回复，端口号为好友账号后四位
+    tcplink->friendInfo.tcpSocket->connectToHost(tcplink->friendInfo.node.hostAddr, getPortNumber(tcplink->friendInfo.account) /*tcplink->friendInfo.node.hostPort*/); // 连接到 待加好友服务器，IP地址为回复，端口号为好友账号后四位
+    qDebug() << "connect to host: IP " << tcplink->friendInfo.node.hostAddr << " port " << getPortNumber(tcplink->friendInfo.account);
 }
 // 与服务器断开连接
 void QAppWindow::serverDisconnected()
@@ -95,6 +104,7 @@ void QAppWindow::sendRequest()
 
     switch (tcplink->loginInfo.request) {
     case SEND_FRIEND:       // 发送好友请求
+        qDebug() << tcplink->loginInfo.account.toStdString().c_str();
         tcplink->friendInfo.tcpSocket->write(tcplink->loginInfo.account.toStdString().c_str());
         break;
 //    case :
@@ -111,6 +121,7 @@ void QAppWindow::recieveData()
    QString Reply;
    qba = tcplink->friendInfo.tcpSocket->readAll();
    Reply = QVariant(qba).toString();
+   qDebug() << Reply;
    if(Reply.size() == 10/*accountRegExp.exactMatch(Reply)*/)       // 回复匹配学号
    {
        chatWindow *chat;
