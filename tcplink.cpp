@@ -155,7 +155,8 @@ void TCPLink::readResult()
         {
             replyKind = FRIEND_ONLINE;
             friendInfo.status = ONLINE;
-            friendInfo.node.hostAddr = Reply;
+            friendInfo.node.hostAddr = Reply;       // IP 地址为回复信息
+            friendInfo.node.hostPort = getPortNumber(friendInfo.account);   // 端口号为 账号后4位数字
         }
         else if(Reply == "")
         {

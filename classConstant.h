@@ -5,6 +5,7 @@
 //#include <QtGui>
 #include <QtWidgets>
 #include <QMessageBox>
+#include <QTcpSocket>
 #include <QDebug>   // Qt Debug
 //#include <QHostAddress>
 /// 服务器端 ServerNode 节点类
@@ -17,7 +18,9 @@ enum REQUEST{   // 请求
     LOGIN = 10,     // 登录 = 10
     QUERY = 11,     // 查找 = 11
     LOGOUT = 12,    // 登出 = 12
-    MESSAGE = 13    // 发送信息 = 13
+    MESSAGE = 13,   // 发送信息 = 13
+    SEND_FRIEND = 14,  // 发送好友请求 = 14
+    GET_FRIEND = 15     // 好友请求
 };
 enum REPLY{     // 回复
     NO_REPLY = 99,          // 无回复
@@ -45,6 +48,7 @@ const QRegExp ipRegExp("((2[0-4]\\d|25[0-5]|[01]?\\d\\d?)\\.){3}(2[0-4]\\d|25[0-
 // QRegExp ipRegExp("\\b((?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.)""{3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d))\\b");    // 判断 IP 地址正则表达式
 const QRegExp portRegExp("(/^[1-9]$|(^[1-9][0-9]$)|(^[1-9][0-9][0-9]$)|(^[1-9][0-9][0-9][0-9]$)|(^[1-6][0-5][0-5][0-3][0-5]$)/)");    // 判断端口号正则表达式
 const QRegExp macRegExp("([0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2}-[0-9A-F]{2})");    // 判断 MAC 地址正则表达式
+const QRegExp accountRegExp("[0-9]{10}");   // 账号匹配正则表达式
 
 /// 结构体定义
 struct ServerNode{
@@ -93,7 +97,8 @@ struct UserInfo{
 struct LoginInfo{
     QString account;
     QString password;
-    int status;
+    int status;         // 状态
+    int request;        // 请求
     LoginInfo()
     {
         status = 0;
@@ -114,6 +119,7 @@ struct FriendInfo
 {
     QString account;        // 好友账号
     ServerNode node;        // 好友IP地址节点
+    QTcpSocket *tcpSocket;    // 每个好友与自身服务器建立的TCP socket
     QString name;           // 好友名字
     int avatarNumber;       // 好友头像编号
     int status;             // 好友在线状态
@@ -158,5 +164,13 @@ struct Message
         return qis;
     }
 };
+// 从账号中获取端口号
+#ifndef GET_PORTNUMBER
+#define GET_PORTNUMBER
+inline quint16 getPortNumber(QString account)
+{
+    return (account.right(4).toUInt());     // 截取后4位作为服务器端口号
+}
+#endif // GET_PORTNUMBER
 
 #endif // CLASSCONSTANT_H

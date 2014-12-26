@@ -20,10 +20,10 @@ public:
 
     UserInfo userInfo;      // 用户信息
     LoginInfo loginInfo;    // 登录信息
-    FriendInfo friendInfo;  //好友信息
+    FriendInfo friendInfo;  //好友信息，待加为好友
     Message message;        // 会话消息
     QVector<Message> messageVect;   // 消息向量
-    QVector<FriendInfo> friendVect; // 好友列表
+    QVector<FriendInfo> friendVect; // 好友列表，已添加为好友
 
     QTcpSocket *tcpClient;
     qint16 blockSize;
