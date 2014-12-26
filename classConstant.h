@@ -19,7 +19,7 @@ enum REQUEST{   // 请求
     QUERY = 11,     // 查找 = 11
     LOGOUT = 12,    // 登出 = 12
     MESSAGE = 13,   // 发送信息 = 13
-    SEND_FRIEND = 14,  // 发送好友请求 = 14
+    ADD_FRIEND = 14,  // 发送好友请求 = 14
     GET_FRIEND = 15     // 好友请求
 };
 enum REPLY{     // 回复
@@ -33,13 +33,18 @@ enum REPLY{     // 回复
     FRIEND_OFFLINE = 25,    // 好友未在线
     FRIEND_NO_ACCOUNT = 27, // 无此账号
     FRIEND_ONLINE = 26,     // 好友在线
+    // 添加好友恢复
+    ADDFRIEND_SUCCESS = 30, // 成功添加好友
+    ADDFRIEND_DENY = 31,    // 好友拒绝
+    HAVE_ADDED = 32,        // 已经是好友
+    ADDFRIEND_REQUEST = 33, // 添加好友请求
     // 登出回复
-    LOGOUT_SUCCESS = 30,    // 登出成功
-    LOGOUT_FAILED = 31,      // 登出失败
+    LOGOUT_SUCCESS = 40,    // 登出成功
+    LOGOUT_FAILED = 41,      // 登出失败
     // 会话消息回复
-    NO_MESSAGE = 40,        // 无消息
-    NAVE_MESSAGE = 41,      // 有消息
-    HAVE_TALK_MESSAGE = 42  // 有会消息
+    NO_MESSAGE = 50,        // 无消息
+    NAVE_MESSAGE = 51,      // 有消息
+    HAVE_TALK_MESSAGE = 52  // 有会消息
 
 };
 
@@ -120,6 +125,7 @@ struct FriendInfo
     QString account;        // 好友账号
     ServerNode node;        // 好友IP地址节点
     QTcpSocket *tcpSocket;    // 每个好友与自身服务器建立的TCP socket
+    bool isConnected;       // 与该好友已经建立 TCP 通信
     QString name;           // 好友名字
     int avatarNumber;       // 好友头像编号
     int status;             // 好友在线状态
@@ -128,7 +134,9 @@ struct FriendInfo
     QString remark;			//好友备注
 
     FriendInfo()
-    {	avatarNumber = status = friendKind = 0;	}
+    {	avatarNumber = status = friendKind = 0;
+        isConnected = false;
+    }
 
     friend QDataStream & operator<< (QDataStream &qos, const FriendInfo &fi)
     {

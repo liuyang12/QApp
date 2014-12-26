@@ -58,6 +58,7 @@ private:
 //    qint16 blockSize;
 //    void newConnect(void);      // TCP初始化连接
 signals:
+    void loggedinSignal(void);      // 用户已经登录信号
     void disconnectedSignal(void);  // 服务器未连接
 //    void connectionFailedSignal(void);
 };

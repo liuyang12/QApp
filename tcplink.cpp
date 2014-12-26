@@ -11,13 +11,154 @@ TCPLink::TCPLink(const ServerNode &node, QObject *parent/* = 0*/) :
     connect(tcpClient, SIGNAL(readyRead()), this, SLOT(readResult()));
     connect(tcpClient, SIGNAL(disconnected()), this, SLOT(serverDisconnected()));
     connect(tcpClient, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
-
 }
 
 TCPLink::~TCPLink()
 {
 
 }
+// 作为服务器初始化
+void TCPLink::initasServer()
+{
+    FriendInfo myself;
+    myself.account = loginInfo.account;
+    myself.status = loginInfo.status;
+    friendVect.push_back(myself);  // myself = friendVect[0]，第 0 位好友为其本身
+    userInfo.account = loginInfo.account;
+    userInfo.status = loginInfo.status = ONLINE;
+    timer = new QTimer;
+    tcpServer = new QTcpServer(this);
+//    this->tcpSender = new QTcpSocket(this);
+    friendInfo.tcpSocket = new QTcpSocket(this);
+
+    newListen();    // 监听客户端请求。端口号 为学号后四位数字
+    // 当有客户端访问时，发出newConnection() 信号，acceptConnection() 处理该新建连接信号
+    connect(tcpServer, SIGNAL(newConnection()), this, SLOT(acceptConnection()));
+    // 当tcpSocket在接受客户端连接时出现错误时，displayError(QAbstractSocket::SocketError) 处理该信号
+    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+    // 获取发送的数据信息
+    /** friendInfo.tcpSocket = tcpSender */
+    connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
+    connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
+//    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));    // 处理错误信息
+
+
+}
+
+// 监听客户端请求，端口号 为学号后四位数字，以
+void TCPLink::newListen()
+{
+    // 监听是否有客户端来访，且对任意来访者进行监听，端口号 为学号后四位数字
+    if(!tcpServer->listen(QHostAddress::Any, /*6666*/getPortNumber(loginInfo.account)))
+    {
+        qDebug() << tcpServer->errorString();
+//        close();
+        return ;
+    }
+}
+// 当有客户端访问时，发出newConnection() 信号，acceptConnection() 处理该新建连接信号
+void TCPLink::acceptConnection()
+{
+//    if(friendInfo.isConnected == false)
+//    {
+        // 当有客户来访时，将tcpSocket接受tcpServer建立的socket
+        loginInfo.request = GET_FRIEND;
+        friendInfo.tcpSocket = tcpServer->nextPendingConnection();
+        friendInfo.node.hostAddr = friendInfo.tcpSocket->peerAddress().toString();   // 获取客户端IP地址
+        //    friendInfo.node.hostPort = friendInfo.tcpSocket->peerPort();  // 获取客户端端口号
+        qDebug() << "accept connection from client: " << friendInfo.node.hostAddr;
+        // 当tcpSocket在接受客户端连接时出现错误时，displayError(QAbstractSocket::SocketError) 处理该信号
+        connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+        // 获取发送的数据信息
+        /** friendInfo.tcpSocket = tcpSender */
+        connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
+        connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
+        //    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));    // 处理错误信息
+//        friendInfo.isConnected = true;
+//    }
+//    else
+//    {
+////        friendInfo.isConnected = true;
+//    }
+
+}
+// 当tcpSocket在接受客户端连接时出现错误时，displayError(QAbstractSocket::SocketError) 处理该信号
+//void TCPLink::displayError(QAbstractSocket::SocketError)
+//{
+//    qDebug() << friendInfo.tcpSocket->errorString()/*friendInfo.tcpSocket->errorString()*/;
+//    friendInfo.tcpSocket->close();
+//}
+// 建立连接到该好友的
+void TCPLink::newTCPConnection()
+{
+    if(friendInfo.isConnected == false)
+    {
+        friendInfo.tcpSocket->abort();
+        friendInfo.tcpSocket->connectToHost(friendInfo.node.hostAddr, getPortNumber(friendInfo.account) /*friendInfo.node.hostPort*/); // 连接到 待加好友服务器，IP地址为回复，端口号为好友账号后四位
+        qDebug() << "connect to host: IP " << friendInfo.node.hostAddr << " port " << getPortNumber(friendInfo.account);
+
+//        friendInfo.isConnected = true;
+    }
+    else
+    {
+        TCPLink::sendData();
+    }
+
+}
+// 发送请求
+void TCPLink::sendData()
+{
+
+    switch (requestKind) {
+    case ADD_FRIEND:       // 发送好友请求
+        qDebug() << loginInfo.account.toStdString().c_str();
+        friendInfo.tcpSocket->write(loginInfo.account.toStdString().c_str());
+        break;
+//    case :
+
+//        break;
+    default:
+        break;
+    }
+}
+// 读取请求
+void TCPLink::recieveData()
+{
+   QByteArray qba;
+   QString Reply;
+   qba = friendInfo.tcpSocket->readAll();
+   Reply = QVariant(qba).toString();
+   qDebug() << Reply;
+   if(Reply.size() == 10/*accountRegExp.exactMatch(Reply)*/)       // 回复匹配学号
+   {
+//       chatWindow *chat;
+       friendInfo.account = Reply;
+//       friendInfo.node = friendInfo.tcpSocket-
+       replyKind = ADDFRIEND_REQUEST;
+
+   }
+   else if(Reply == "ADD")  // 好友接收好友请求
+   {
+//       chatWindow *chat;
+       friendVect.push_back(friendInfo);
+       /** 将好友信息显示在主界面窗口上 */
+//       chat = new chatWindow;
+//       chat->show();
+       replyKind = ADDFRIEND_SUCCESS;       // 成功添加好友
+
+   }
+   else if(Reply == "CANCEL")// 好友取消好友请求
+   {
+       replyKind = ADDFRIEND_DENY;          // 好友拒绝添加好友请求
+   }
+   else
+   {
+       replyKind = NO_REPLY;
+   }
+   emit newReplySignal(replyKind);   // 发送接收到新的数据信号
+}
+
+
 // 新建 TCP 连接，连接到服务器
 void TCPLink::newConnect()
 {
@@ -228,6 +369,7 @@ void TCPLink::displayError(QAbstractSocket::SocketError socketError)
         emit connectionFailedSignal();
     }
 }
+/// 与（主）服务器通信，向服务器发送请求
 // 与服务器失去连接
 void TCPLink::serverDisconnected()
 {
@@ -260,4 +402,11 @@ void TCPLink::messageRequest(Message &msg/* = message*/)
     requestKind = MESSAGE;
     message = msg;
     newConnect();
+}
+/// 与好友（服务器）通信，向好友发送请求
+// 添加好友请求
+void TCPLink::addFriendRequest()
+{
+    requestKind = ADD_FRIEND;
+    TCPLink::newTCPConnection();
 }
