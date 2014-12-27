@@ -5,6 +5,8 @@
 #include <QMessageBox>
 #include <QDebug>
 #include "qappwindow.h"    // 主界面窗口，登录成功后弹出
+#include <QMovie>
+#include <QtGui>
 
 login::login(QWidget *parent) :
     QDialog(parent),
@@ -17,12 +19,31 @@ login::login(QWidget *parent) :
     serverNode.hostAddr = "166.111.180.60";
     serverNode.hostPort = 8000;
 
+    //QMovie*movie=new QMovie(":picture/2.gif");
     tcplink = new TCPLink(serverNode, this);
     ui->Edit_ServerAddr->setText(serverNode.hostAddr);
     ui->Edit_ServerPort->setText("8000");
     ui->Edit_ServerAddr->setDisabled(true);
     ui->Edit_ServerPort->setDisabled(true);
 
+    //鼠标移动到按钮上按钮图片变化
+    ui->Button_ConfigServer->setMouseTracking(true);
+    ui->Button_ConfigServer->setStyleSheet("QPushButton{border-image: url(:/picture/kb.png);background-image: url(:/picture/kb.png);}"
+                                           "QPushButton:hover{border-image: url(:/picture/kb.png);background-color: qlineargradient(spread:pad, x1:0.555682, y1:0.222, x2:0.55, y2:1, stop:0.482955 rgba(213, 0, 10, 232), stop:1 rgba(213, 0, 10, 82));}"
+                                           );
+    ui->close_button->setMouseTracking(true);
+    ui->close_button->setStyleSheet("QPushButton{border-image: url(:/picture/kb.png);background-image: url(:/picture/kb.png);}"
+                                    "QPushButton:hover{border-image: url(:/picture/kb.png);background-color: qlineargradient(spread:pad, x1:0.555682, y1:0.222, x2:0.55, y2:1, stop:0.482955 rgba(213, 0, 10, 232), stop:1 rgba(213, 0, 10, 82));}"
+                                    );
+    ui->label->setVisible(false);
+    ui->label_2->setVisible(false);
+    ui->Edit_ServerAddr->setVisible(false);
+    ui->Edit_ServerPort->setVisible(false);
+
+
+    //ui->giflable->setMovie(movie);//gif显示
+    //movie->start();
+    this->setWindowFlags(Qt::FramelessWindowHint);     // 设置窗口无边框
     this->ui->EditNumber->setText(tr("2012011"));
     this->ui->EditPassword->setText(tr(""));
     this->ui->EditPassword->setEchoMode(QLineEdit::Password);
@@ -52,6 +73,28 @@ void login::serverDisconnected()
 {
     emit disconnectedSignal();
 }
+
+//拖动窗口
+void  login::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        dragPosition = event->globalPos() - frameGeometry().topLeft();
+        event->accept();
+    }
+//    if (event->button() == Qt::RightButton)
+//        close();//如果是右键，则关闭窗体
+}
+void  login::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->buttons() && Qt::LeftButton)
+    {
+        move(event->globalPos() - dragPosition);
+        event->accept();
+    }
+}
+
+
 
 void login::on_EditNumber_textChanged(const QString &arg1)
 {
@@ -176,14 +219,19 @@ void login::reLogin()
     this->show();
 }
 
-void login::on_pushButton_clicked()
+void login::on_close_button_clicked()
 {
+    ui->Button_ConfigServer->raise();
     this->reject();
     this->close();
 }
 
 void login::on_Button_ConfigServer_clicked()
 {
+    ui->label->setVisible(true);
+    ui->label_2->setVisible(true);
+    ui->Edit_ServerAddr->setVisible(true);
+    ui->Edit_ServerPort->setVisible(true);
     // 允许设置服务器地址
     ui->Edit_ServerAddr->setDisabled(false);
     ui->Edit_ServerPort->setDisabled(false);

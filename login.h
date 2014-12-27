@@ -28,6 +28,8 @@ public:
 //    QString LogInfo;
 //    QString Reply;              // 收到的服务器端的回复
 
+    QPoint dragPosition;
+
 private slots:
 //    void sendRequest(void);     // 发送请求，TCP初始化连接
 //    void readResult(void);      // 读取服务器端的结果
@@ -49,9 +51,26 @@ private slots:
 
     void on_buttonConfirm_clicked();
 
-    void on_pushButton_clicked();
+    //void on_pushButton_clicked();
 
     void on_Button_ConfigServer_clicked();
+
+//拖动窗口
+
+    void mousePressEvent(QMouseEvent *event);
+
+    void  mouseMoveEvent(QMouseEvent *event);
+
+
+    //void on_close_clicked();
+
+    //void on_giflable_linkActivated(const QString &link);
+
+    //    void init();
+
+    //    bool eventFilter(QObject*target, QEvent*e);
+
+    void on_close_button_clicked();
 
 private:
     Ui::login *ui;

@@ -29,3 +29,6 @@ FORMS    += \
     login.ui \
     qappwindow.ui \
     chatwindow.ui
+
+RESOURCES += \
+    picture.qrc
