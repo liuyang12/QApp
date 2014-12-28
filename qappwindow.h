@@ -2,10 +2,11 @@
 #define QAPPWINDOW_H
 
 #include <QMainWindow>
-//#include <QTcpServer>
-//#include <QTcpSocket>
+#include <QTcpServer>
+#include <QTcpSocket>
 //#include <QTimer>
 #include "tcplink.h"
+#include "classConstant.h"
 
 namespace Ui {
 class QAppWindow;
@@ -38,19 +39,27 @@ private slots:
 
     void on_action_Logout_triggered();
 
+//文件传输
+    void acceptConnection();  //建立连接
+    void updateServerProgress();  //更新进度条，接收数据
+    void displayError(QAbstractSocket::SocketError socketError);//显示错误
+
 private:
     Ui::QAppWindow *ui;
 
-//    QTcpServer *tcpServer;      // TCP Server
-////    QTcpSocket *tcpSocket;      // TCP Socket
+    QTcpServer *tcpServer;      // TCP Server
+    QTcpSocket *tcpClient;      // TCP Socket
 //    QTimer *timer;              // 计时器
 ////    QTcpSocket *tcpSender;      // TCP Sender
 
     TCPLink *tcplink;
+    TSFile ReceiveFile;
 
 signals:
     void reLoginSignal(void);     // 重新登录请求
     void disconnectedSignal(void);
+
+    void FriendInfoSignal(FriendInfo);//好友信息
 };
 
 #endif // QAPPWINDOW_H

@@ -1,5 +1,6 @@
 //#include "qappwindow.h"
 #include <QApplication>
+#include <QTextCodec>
 #include <stdio.h>
 #include "login.h"
 #include "chatwindow.h"
@@ -8,6 +9,7 @@ int main(int argc, char *argv[])
 {
     QApplication::setStyle("cleanlooks");
     QApplication a(argc, argv);
+    QTextCodec::setCodecForLocale(QTextCodec::codecForLocale());
 //    QWindow w;
     login log_in;
 //    log_in.setWindowOpacity(1);

@@ -7,6 +7,8 @@
 #include <QMessageBox>
 #include <QTcpSocket>
 #include <QDebug>   // Qt Debug
+#include <QtNetwork>
+#include <QFile>
 //#include <QHostAddress>
 /// 服务器端 ServerNode 节点类
 enum STATUS{    // 状态
@@ -172,6 +174,27 @@ struct Message
         return qis;
     }
 };
+
+//传送文件类
+struct TSFile
+{
+    QFile *File;                //传送文件
+    qint64 WholeBytes;          //数据总大小
+    qint64 FinishedBytes;       //传送完成数据大小
+    qint64 TodoBytes;           //待传送数据大小
+    qint64 EachSize;            //每次传送数据大小
+    QString FileName;           //文件名
+    QByteArray Buffer;          //数据缓冲区
+
+    TSFile()
+    {
+        WholeBytes = 0;
+        FinishedBytes = 0;
+        TodoBytes = 0;
+        EachSize = 4*1024;
+    }
+};
+
 // 从账号中获取端口号
 #ifndef GET_PORTNUMBER
 #define GET_PORTNUMBER

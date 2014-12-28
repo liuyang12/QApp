@@ -10,6 +10,16 @@ QAppWindow::QAppWindow(TCPLink* tcplink, QWidget *parent) :
     ui->setupUi(this);
     tcplink->initasServer();
     QAppWindow::initStatus();   // 初始状态设置
+
+    //监听初始化
+    tcpServer = new QTcpServer();
+    if(!tcpServer->listen(QHostAddress::Any,16666))
+    {
+        qDebug() << tcpServer->errorString();
+        close();
+    }
+    ReceiveFile.EachSize = 0;
+    connect(tcpServer, SIGNAL(newConnection()), this, SLOT(acceptConnection()));
 }
 
 QAppWindow::~QAppWindow()
@@ -230,7 +240,9 @@ void QAppWindow::newReply(qint32 replyKind)
             /** 显示在主界面窗口上 */
             chat = new chatWindow;       // 成功添加好友，打开聊天窗口
             chat->setWindowTitle(tcplink->friendInfo.account);
+            connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
             chat->show();
+            emit this->FriendInfoSignal(tcplink->friendInfo);
 //            replyKind = ADDFRIEND_SUCCESS;   // 成功添加好友
             break;
         case 1:
@@ -244,7 +256,9 @@ void QAppWindow::newReply(qint32 replyKind)
     case ADDFRIEND_SUCCESS: // 成功添加好友
         chat = new chatWindow;
         chat->setWindowTitle(tcplink->friendInfo.account);
+        connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
         chat->show();
+        emit this->FriendInfoSignal(tcplink->friendInfo);
         break;
     case ADDFRIEND_DENY:    // 好友拒绝添加好友请求
 
@@ -273,4 +287,64 @@ void QAppWindow::on_action_Logout_triggered()
     tcplink->userInfo.account = tcplink->loginInfo.account;
 //    tcplink->requestKind = LOGOUT;
     tcplink->logoutRequest(tcplink->userInfo);
+}
+
+
+
+//--------------------------------------------------------
+void QAppWindow::acceptConnection()
+{
+    tcpClient = tcpServer->nextPendingConnection();
+    connect(tcpClient,SIGNAL(readyRead()),this,SLOT(updateServerProgress()));
+    connect(tcpClient,SIGNAL(error(QAbstractSocket::SocketError)),this,
+            SLOT(displayError(QAbstractSocket::SocketError)));
+    tcpServer->close();
+}
+
+void QAppWindow::updateServerProgress()
+{
+    QDataStream in(tcpClient);
+    in.setVersion(QDataStream::Qt_5_3);
+    if(ReceiveFile.FinishedBytes <= sizeof(qint64)*2)
+    {
+        if((tcpClient->bytesAvailable() >= sizeof(qint64)*2)
+                && (ReceiveFile.EachSize == 0))
+        {
+            in >> ReceiveFile.WholeBytes >> ReceiveFile.EachSize;
+            ReceiveFile.FinishedBytes += sizeof(qint64) * 2;
+        }
+        if((tcpClient->bytesAvailable() >= ReceiveFile.EachSize)
+                && (ReceiveFile.EachSize != 0))
+        {
+            in >> ReceiveFile.FileName;
+            ReceiveFile.FinishedBytes += ReceiveFile.EachSize;
+            ReceiveFile.File = new QFile(ReceiveFile.FileName);
+            if(!ReceiveFile.File->open(QFile::WriteOnly))
+            {
+                qDebug() << "open file error!";
+                return;
+            }
+        }
+        else return;
+    }
+    if(ReceiveFile.FinishedBytes < ReceiveFile.WholeBytes)
+
+    {  //如果接收的数据小于总数据，那么写入文件
+        ReceiveFile.FinishedBytes += tcpClient->bytesAvailable();
+        ReceiveFile.Buffer = tcpClient->readAll();
+        ReceiveFile.File->write(ReceiveFile.Buffer);
+        ReceiveFile.Buffer.resize(0);
+    }
+    if(ReceiveFile.FinishedBytes == ReceiveFile.WholeBytes)
+    {
+        tcpClient->close();
+        ReceiveFile.File->close();
+    }
+}
+
+void QAppWindow::displayError(QAbstractSocket::SocketError) //错误处理
+
+{
+    qDebug() << tcpClient->errorString();
+    tcpClient->close();
 }
