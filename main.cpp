@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
         qDebug() << "\t" << driver;
     }
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE"); // 添加数据库驱动 QSQLITE SQLite
-    db.setDatabaseName("demo.db");  // 数据库连接命名
+    db.setDatabaseName("Database/demo.db");  // 数据库连接命名
     if(!db.open())  // 检查数据库是否打开成功
     {
         QMessageBox::critical(NULL, "数据库连接错误", "数据库连接失败\n请检查数据库位置");

@@ -31,4 +31,5 @@ FORMS    += \
     chatwindow.ui
 
 RESOURCES += \
-    picture.qrc
+    picture.qrc \
+    mainpicture.qrc

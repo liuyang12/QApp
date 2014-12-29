@@ -6,20 +6,23 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>666</width>
+    <width>675</width>
     <height>490</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
   <widget class="QScrollArea" name="scrollArea">
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>0</y>
-     <width>451</width>
-     <height>291</height>
+     <y>80</y>
+     <width>441</width>
+     <height>191</height>
     </rect>
    </property>
    <property name="widgetResizable">
@@ -30,17 +33,17 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>449</width>
-      <height>289</height>
+      <width>439</width>
+      <height>189</height>
      </rect>
     </property>
     <widget class="QTextEdit" name="Show_message">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>451</width>
-       <height>291</height>
+       <x>10</x>
+       <y>20</y>
+       <width>421</width>
+       <height>151</height>
       </rect>
      </property>
      <property name="font">
@@ -56,9 +59,9 @@
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>320</y>
-     <width>451</width>
-     <height>171</height>
+     <y>310</y>
+     <width>441</width>
+     <height>161</height>
     </rect>
    </property>
    <property name="widgetResizable">
@@ -69,17 +72,17 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>449</width>
-      <height>169</height>
+      <width>439</width>
+      <height>159</height>
      </rect>
     </property>
     <widget class="QTextEdit" name="Edit_massage">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>451</width>
-       <height>161</height>
+       <x>20</x>
+       <y>10</y>
+       <width>411</width>
+       <height>141</height>
       </rect>
      </property>
      <property name="font">
@@ -97,8 +100,8 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>80</x>
-     <y>290</y>
+     <x>30</x>
+     <y>280</y>
      <width>31</width>
      <height>31</height>
     </rect>
@@ -136,7 +139,7 @@
   <widget class="QLabel" name="clientStatusLabel">
    <property name="geometry">
     <rect>
-     <x>560</x>
+     <x>550</x>
      <y>380</y>
      <width>54</width>
      <height>12</height>

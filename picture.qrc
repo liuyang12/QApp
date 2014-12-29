@@ -1,7 +1,24 @@
 <RCC>
     <qresource prefix="/">
-        <file>picture/login.jpg</file>
         <file>picture/kb.png</file>
-        <file>picture/button.jpg</file>
+        <file>picture/white.jpg</file>
+        <file>picture/1.gif</file>
+        <file>picture/2.gif</file>
+        <file>picture/tx1.jpg</file>
+        <file>picture/tx2.jpg</file>
+        <file>picture/bule.jpg</file>
+        <file>picture/0.gif</file>
+        <file>picture/login.png</file>
+        <file>picture/login_hover.png</file>
+        <file>picture/close_down.png</file>
+        <file>picture/close_hover.png</file>
+        <file>picture/close_normal.png</file>
+        <file>picture/min_down.png</file>
+        <file>picture/min_hover.png</file>
+        <file>picture/min_normal.png</file>
+        <file>picture/setting_down.png</file>
+        <file>picture/setting_hover.png</file>
+        <file>picture/setting_normal.png</file>
+        <file>picture/yellow.jpg</file>
     </qresource>
 </RCC>

@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>mainpicture/addchat_hover.png</file>
+        <file>mainpicture/addchat_normal.png</file>
+        <file>mainpicture/addfriend_hover.png</file>
+        <file>mainpicture/addfriend_normal.png</file>
+        <file>mainpicture/bj.jpg</file>
+        <file>mainpicture/chat_hover.png</file>
+        <file>mainpicture/chat_normal.png</file>
+        <file>mainpicture/find_hover.png</file>
+        <file>mainpicture/find_normal.png</file>
+        <file>mainpicture/qunchat_hover.png</file>
+        <file>mainpicture/qunchat_normal.png</file>
+        <file>mainpicture/tx1.jpg</file>
+        <file>mainpicture/tx2.jpg</file>
+        <file>mainpicture/kb.png</file>
+        <file>mainpicture/white.jpg</file>
+    </qresource>
+</RCC>

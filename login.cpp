@@ -16,13 +16,17 @@ login::login(QWidget *parent) :
     ui(new Ui::login)
 {
     ui->setupUi(this);
+    flag = false;
     // 设置语言编码格式
 //    QTextCodec::setCodecForLocale(QTextCodec::codecForName("system"));
     // 服务器IP地址、端口初始化
     serverNode.hostAddr = "166.111.180.60";
     serverNode.hostPort = 8000;
 
-    //QMovie*movie=new QMovie(":picture/2.gif");
+    //gif显示
+    QMovie*movie=new QMovie(":picture/0.gif");
+    ui->giflable->setMovie(movie);
+    movie->start();
     tcplink = new TCPLink(serverNode, this);
     ui->Edit_ServerAddr->setText(serverNode.hostAddr);
     ui->Edit_ServerPort->setText("8000");
@@ -31,21 +35,44 @@ login::login(QWidget *parent) :
 
     //鼠标移动到按钮上按钮图片变化
     ui->Button_ConfigServer->setMouseTracking(true);
+    ui->Button_ConfigServer->setGeometry(340,0,30,27);
     ui->Button_ConfigServer->setStyleSheet("QPushButton{border-image: url(:/picture/kb.png);background-image: url(:/picture/kb.png);}"
-                                           "QPushButton:hover{border-image: url(:/picture/kb.png);background-color: qlineargradient(spread:pad, x1:0.555682, y1:0.222, x2:0.55, y2:1, stop:0.482955 rgba(213, 0, 10, 232), stop:1 rgba(213, 0, 10, 82));}"
+                                           "QPushButton:hover{border-image: url(:/picture/setting_hover.png);background-image: url(:/picture/kb.png);}"
+                                           "QPushButton:pressed{border-image: url(:/picture/setting_down.png);background-image: url(:/picture/kb.png);}"
                                            );
     ui->close_button->setMouseTracking(true);
+    ui->close_button->setGeometry(400,0,30,27);
     ui->close_button->setStyleSheet("QPushButton{border-image: url(:/picture/kb.png);background-image: url(:/picture/kb.png);}"
-                                    "QPushButton:hover{border-image: url(:/picture/kb.png);background-color: qlineargradient(spread:pad, x1:0.555682, y1:0.222, x2:0.55, y2:1, stop:0.482955 rgba(213, 0, 10, 232), stop:1 rgba(213, 0, 10, 82));}"
+                                    "QPushButton:hover{border-image: url(:/picture/close_hover.png);background-image: url(:/picture/kb.png);}"
+                                    "QPushButton:pressed{border-image: url(:/picture/close_down.png);background-image: url(:/picture/kb.png);}"
                                     );
-    ui->label->setVisible(false);
-    ui->label_2->setVisible(false);
-    ui->Edit_ServerAddr->setVisible(false);
-    ui->Edit_ServerPort->setVisible(false);
+    ui->minbutton->setMouseTracking(true);
+    ui->minbutton->setGeometry(370,0,30,27);
+    ui->minbutton->setStyleSheet("QPushButton{border-image: url(:/picture/kb.png);background-image: url(:/picture/kb.png);}"
+                                 "QPushButton:hover{border-image: url(:/picture/min_hover.png);background-image: url(:/picture/kb.png);}"
+                                 "QPushButton:pressed{border-image: url(:/picture/min_down.png);background-image: url(:/picture/kb.png);}"
+                                 );
+    //登陆按钮
+    ui->buttonConfirm->setMouseTracking(true);
+    ui->buttonConfirm->setStyleSheet("QPushButton{color: rgb(255, 255, 255);border-image: url(:/picture/login.png);background-image: url(:/picture/kb.png);}"
+                                     "QPushButton:hover{color: rgb(255, 255, 255);border-image: url(:/picture/login_hover.png);background-image: url(:/picture/kb.png);}"
+                                    );
+    //注册帐号
+    ui->zhu_ce->setMouseTracking(true);
+    ui->zhu_ce->setStyleSheet("QPushButton{color: rgb(0, 85, 255);border-image: url(:/picture/kb.png);background-image: url(:/picture/kb.png);}"
+                              "QPushButton:hover{color: rgb(119, 178, 255);border-image: url(:/picture/kb.png);background-image: url(:/picture/kb.png);}"
+                             );
+    //找回密码
+    ui->findpassword->setMouseTracking(true);
+    ui->findpassword->setStyleSheet("QPushButton{color: rgb(0, 85, 255);border-image: url(:/picture/kb.png);background-image: url(:/picture/kb.png);}"
+                              "QPushButton:hover{color: rgb(119, 178, 255);border-image: url(:/picture/kb.png);background-image: url(:/picture/kb.png);}"
+                             );
 
+    ui->label->setVisible(flag);
+    ui->label_2->setVisible(flag);
+    ui->Edit_ServerAddr->setVisible(flag);
+    ui->Edit_ServerPort->setVisible(flag);
 
-    //ui->giflable->setMovie(movie);//gif显示
-    //movie->start();
     this->setWindowFlags(Qt::FramelessWindowHint);     // 设置窗口无边框
     this->ui->EditNumber->setText(tr("2012011"));
     this->ui->EditPassword->setText(tr(""));
@@ -188,7 +215,7 @@ void login::newReply(qint32 replyKind)
         QMessageBox::information(this, tr("info"), tr("用户登录成功"), QMessageBox::Yes);
         emit loggedinSignal();
         // 调用主界面
-        qapp = new QAppWindow(/*(tcplink, */NULL);
+        qapp = new QAppWindow(/*tcplink, */NULL);
         // 连接重新登录信号
         connect(qapp, SIGNAL(reLoginSignal()), this, SLOT(reLogin()));
         ui->buttonConfirm->setEnabled(true);
@@ -231,11 +258,17 @@ void login::on_close_button_clicked()
 
 void login::on_Button_ConfigServer_clicked()
 {
-    ui->label->setVisible(true);
-    ui->label_2->setVisible(true);
-    ui->Edit_ServerAddr->setVisible(true);
-    ui->Edit_ServerPort->setVisible(true);
+    flag = !flag;
+    ui->label->setVisible(flag);
+    ui->label_2->setVisible(flag);
+    ui->Edit_ServerAddr->setVisible(flag);
+    ui->Edit_ServerPort->setVisible(flag);
     // 允许设置服务器地址
     ui->Edit_ServerAddr->setDisabled(false);
     ui->Edit_ServerPort->setDisabled(false);
+}
+
+void login::on_minbutton_clicked()
+{
+    this->showMinimized();
 }
