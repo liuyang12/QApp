@@ -7,6 +7,9 @@
 #include "qappwindow.h"    // 主界面窗口，登录成功后弹出
 #include <QMovie>
 #include <QtGui>
+#include "tcplink.h"
+
+extern TCPLink *tcplink;           // tcplink 全局变量
 
 login::login(QWidget *parent) :
     QDialog(parent),
@@ -185,7 +188,7 @@ void login::newReply(qint32 replyKind)
         QMessageBox::information(this, tr("info"), tr("用户登录成功"), QMessageBox::Yes);
         emit loggedinSignal();
         // 调用主界面
-        qapp = new QAppWindow(tcplink, NULL);
+        qapp = new QAppWindow(/*(tcplink, */NULL);
         // 连接重新登录信号
         connect(qapp, SIGNAL(reLoginSignal()), this, SLOT(reLogin()));
         ui->buttonConfirm->setEnabled(true);

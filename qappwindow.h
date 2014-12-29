@@ -5,7 +5,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 //#include <QTimer>
-#include "tcplink.h"
+//#include "tcplink.h"
 #include "classConstant.h"
 
 namespace Ui {
@@ -17,7 +17,7 @@ class QAppWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit QAppWindow(TCPLink* tcplink, QWidget *parent = 0);
+    explicit QAppWindow(/*TCPLink* tcplink, */QWidget *parent = 0);
     ~QAppWindow();
 
     void newTCPConnect(void);           // 建立与服务器之间的连接
@@ -28,12 +28,6 @@ private slots:
 ////    void connectedStatus(void);         // 连接建立后状态
 ////    void connectionFailed(void);        // 与服务器连接失败
     void serverDisconnected(void);      // 服务器离线
-
-//    void newListen(void);               // 建立 TCP 监听事件
-//    void acceptConnection(void);        // 接受客户端连接
-//    void displayError(QAbstractSocket::SocketError);    // 显示错误信息
-//    void sendRequest();                 // 向服务器发送请求
-//    void recieveData(void);             // 接受来自服务器端的数据
 
     void on_Button_queryFriend_clicked();
 
@@ -52,7 +46,7 @@ private:
 //    QTimer *timer;              // 计时器
 ////    QTcpSocket *tcpSender;      // TCP Sender
 
-    TCPLink *tcplink;
+//    TCPLink *tcplink;
     TSFile ReceiveFile;
 
 signals:

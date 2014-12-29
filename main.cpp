@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include "login.h"
 #include "chatwindow.h"
+#include "tcplink.h"
+
+TCPLink *tcplink;       // tcplink 全局变量
 
 int main(int argc, char *argv[])
 {

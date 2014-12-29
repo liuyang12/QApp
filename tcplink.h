@@ -81,6 +81,6 @@ public slots:
     void recieveData(void);             // 接受来自服务器端的数据
 
 
-};
+}/* *tcplink*/;
 
 #endif // TCPLINK_H

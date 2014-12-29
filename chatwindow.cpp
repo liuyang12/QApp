@@ -1,5 +1,8 @@
 #include "chatwindow.h"
 #include "ui_chatwindow.h"
+#include "tcplink.h"
+
+extern TCPLink *tcplink;           // tcplink 全局变量
 
 chatWindow::chatWindow(QWidget *parent) :
     QDialog(parent),
