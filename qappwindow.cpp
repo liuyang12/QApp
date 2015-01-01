@@ -36,13 +36,29 @@ QAppWindow::QAppWindow(QWidget *parent) :
 
     //监听初始化
     tcpServer = new QTcpServer();
-    if(!tcpServer->listen(QHostAddress::Any,16666))
+    if(!tcpServer->listen(QHostAddress::Any,16666)) //固定采用16666作服务器端口
     {
         qDebug() << tcpServer->errorString();
         close();
     }
     ReceiveFile.EachSize = 0;
+    FileConnect = false;
     connect(tcpServer, SIGNAL(newConnection()), this, SLOT(acceptConnection()));
+    //文件接收窗口及进度条
+    ReceiveDialog = new QDialog(this);
+    ServerProgressBar = new QProgressBar(ReceiveDialog);
+    OkPushButton = new QPushButton(ReceiveDialog);
+    pLayout = new QVBoxLayout;
+    ReceiveDialog->setWindowTitle(tr("接收文件"));
+    ReceiveDialog->setFixedSize(200,80);
+    ServerProgressBar->setFixedSize(190,30);
+    OkPushButton->setFixedSize(160,30);
+    OkPushButton->setText(tr("正在接收"));
+    pLayout->addWidget(ServerProgressBar);
+    pLayout->addWidget(OkPushButton);
+    ReceiveDialog->setLayout(pLayout);
+    connect(OkPushButton,SIGNAL(clicked()),this,SLOT(on_OkPushButton_clicked()));
+
 
     //建树
     build_tree();
@@ -51,6 +67,7 @@ QAppWindow::QAppWindow(QWidget *parent) :
 
 QAppWindow::~QAppWindow()
 {
+    tcpServer->close();
     delete ui;
 }
 
@@ -218,50 +235,84 @@ void QAppWindow::on_action_Logout_triggered()
 void QAppWindow::acceptConnection()
 {
     tcpClient = tcpServer->nextPendingConnection();
-    connect(tcpClient,SIGNAL(readyRead()),this,SLOT(updateServerProgress()));
+    qDebug() << "Accept Send File Request From : " << tcpClient->peerAddress().toString();
+    ReceiveFile.EachSize = 0;
+    ReceiveFile.TodoBytes = 0;
+    ReceiveFile.FinishedBytes = 0;
+    ReceiveFile.WholeBytes = 0;
+    FileConnect = false;
+    connect(tcpClient,SIGNAL(readyRead()),this,SLOT(FileReceive()));
     connect(tcpClient,SIGNAL(error(QAbstractSocket::SocketError)),this,
-            SLOT(displayError(QAbstractSocket::SocketError)));
-//    tcpServer->close();   // 不是只进行一次连接
+            SLOT(displayError(QAbstractSocket::SocketError))); 
 }
 
-void QAppWindow::updateServerProgress()
+void QAppWindow::FileReceive()
 {
-    QDataStream in(tcpClient);
-    in.setVersion(QDataStream::Qt_5_3);
-    if(ReceiveFile.FinishedBytes <= sizeof(qint64)*2)
+    if(!FileConnect)
     {
-        if((tcpClient->bytesAvailable() >= sizeof(qint64)*2)
-                && (ReceiveFile.EachSize == 0))
+        QString str = "TRANS";
+        if(str == tcpClient->readAll())
         {
-            in >> ReceiveFile.WholeBytes >> ReceiveFile.EachSize;
-            ReceiveFile.FinishedBytes += sizeof(qint64) * 2;
-        }
-        if((tcpClient->bytesAvailable() >= ReceiveFile.EachSize)
-                && (ReceiveFile.EachSize != 0))
-        {
-            in >> ReceiveFile.FileName;
-            ReceiveFile.FinishedBytes += ReceiveFile.EachSize;
-            ReceiveFile.File = new QFile(ReceiveFile.FileName);
-            if(!ReceiveFile.File->open(QFile::WriteOnly))
+            FileConnect = true;
+            char *FileMessage = "ACCEPT";
+            switch (QMessageBox::information(this,tr("文件传送请求"), tr("用户")+tcplink->friendInfo.account+tr("向您传送文件？\n是否接收"), "接收(&A)", "拒绝(&C)", 0))
             {
-                qDebug() << "open file error!";
-                return;
+            case 0:
+                tcpClient->write(FileMessage);
+                ReceiveDialog->show();
+                break;
+            case 1:
+                FileMessage = "REFUSE";
+                tcpClient->write(FileMessage);
+                break;
+            default:
+                tcpClient->write(FileMessage);
+                ReceiveDialog->show();
+                break;
             }
         }
-        else return;
     }
-    if(ReceiveFile.FinishedBytes < ReceiveFile.WholeBytes)
-
-    {  //如果接收的数据小于总数据，那么写入文件
-        ReceiveFile.FinishedBytes += tcpClient->bytesAvailable();
-        ReceiveFile.Buffer = tcpClient->readAll();
-        ReceiveFile.File->write(ReceiveFile.Buffer);
-        ReceiveFile.Buffer.resize(0);
-    }
-    if(ReceiveFile.FinishedBytes == ReceiveFile.WholeBytes)
+    else
     {
-        tcpClient->close();
-        ReceiveFile.File->close();
+        QDataStream in(tcpClient);
+        in.setVersion(QDataStream::Qt_5_3);
+        if(ReceiveFile.FinishedBytes <= sizeof(qint64)*2)
+        {
+            if((tcpClient->bytesAvailable() >= sizeof(qint64)*2)
+                    && (ReceiveFile.EachSize == 0))
+            {
+                in >> ReceiveFile.WholeBytes >> ReceiveFile.EachSize;
+                ReceiveFile.FinishedBytes += sizeof(qint64) * 2;
+            }
+            if((tcpClient->bytesAvailable() >= ReceiveFile.EachSize)
+                    && (ReceiveFile.EachSize != 0))
+            {
+                in >> ReceiveFile.FileName;
+                ReceiveFile.FinishedBytes += ReceiveFile.EachSize;
+                ReceiveFile.File = new QFile(ReceiveFile.FileName);
+                if(!ReceiveFile.File->open(QFile::WriteOnly))
+                {
+                    qDebug() << "Open File Error!";
+                    return;
+                }
+            }
+            else return;
+        }
+        if(ReceiveFile.FinishedBytes < ReceiveFile.WholeBytes)
+        {
+            ReceiveFile.FinishedBytes += tcpClient->bytesAvailable();
+            ReceiveFile.Buffer = tcpClient->readAll();
+            ReceiveFile.File->write(ReceiveFile.Buffer);
+            ReceiveFile.Buffer.resize(0);
+        }
+        ServerProgressBar->setMaximum(ReceiveFile.WholeBytes);
+        ServerProgressBar->setValue(ReceiveFile.FinishedBytes);
+        if(ReceiveFile.FinishedBytes == ReceiveFile.WholeBytes)
+        {
+            tcpClient->close();
+            ReceiveFile.File->close();
+            OkPushButton->setText(tr("接收成功"));
+        }
     }
 }
 
@@ -304,3 +355,7 @@ void QAppWindow::build_tree()
     ui->treeWidget->expandAll(); //结点全部展开
 }
 
+void QAppWindow::on_OkPushButton_clicked()
+{
+    ReceiveDialog->close();
+}

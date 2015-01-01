@@ -42,9 +42,11 @@ private slots:
 
     void on_action_Logout_triggered();
 
+    void on_OkPushButton_clicked();
+
 //文件传输
-    void acceptConnection();  //建立连接
-    void updateServerProgress();  //更新进度条，接收数据
+    void acceptConnection();                                    //建立连接
+    void FileReceive();                                         //接收数据并更新进度条
     void displayError(QAbstractSocket::SocketError socketError);//显示错误
 
 //    void on_pushButton_clicked();
@@ -76,6 +78,11 @@ private:
 
 //    TCPLink *tcplink;
     TSFile ReceiveFile;
+    bool FileConnect;
+    QDialog                 *ReceiveDialog;
+    QProgressBar            *ServerProgressBar;
+    QPushButton             *OkPushButton;
+    QVBoxLayout             *pLayout;
 
 signals:
     void reLoginSignal(void);     // 重新登录请求

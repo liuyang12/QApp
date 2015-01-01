@@ -21,9 +21,8 @@ private:
     Ui::chatWindow *ui;
 
     QTcpSocket *tcpClient;
-
+    bool FileConnect;
     TSFile SendFile;
-    //TSFile ReceiveFile;
 
     FriendInfo friendInfo;  //好友信息
     QString sendString;     // 发送消息字符串
