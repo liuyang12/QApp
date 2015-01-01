@@ -8,8 +8,10 @@
 #include <QMovie>
 #include <QtGui>
 #include "tcplink.h"
+#include <QSqlDatabase>
 
 extern TCPLink *tcplink;           // tcplink 全局变量
+extern QSqlDatabase db;             // db database 全局变量
 
 login::login(QWidget *parent) :
     QDialog(parent),

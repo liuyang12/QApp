@@ -44,6 +44,15 @@ void TCPLink::initasServer()
 
 
 }
+// 切断之前的信号槽连接，以便建立新的连接
+void TCPLink::disconnectfriendSocket()
+{
+    disconnect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+    // 获取发送的数据信息
+    /** friendInfo.tcpSocket = tcpSender */
+    disconnect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
+    disconnect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
+}
 
 // 监听客户端请求，端口号 为学号后四位数字，以
 void TCPLink::newListen()

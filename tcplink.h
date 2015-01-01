@@ -52,6 +52,8 @@ public:
     // 用户请求 - 与好友（服务器）
     void addFriendRequest(void);        // 添加好友请求
 
+    void disconnectfriendSocket(void);      // 切断之前的信号槽连接
+
 private:
     void newConnect();          // 建立新的TCP连接
 
