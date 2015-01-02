@@ -5,6 +5,7 @@
 #include <QTcpServer>
 #include <QTcpSocket>
 #include <QTimer>
+#include <QVector>
 #include "classConstant.h"
 
 class TCPLink : public QObject

@@ -4,6 +4,8 @@
 #include <QString>
 #include <QStringList>
 #include "tcplink.h"
+#include <QVector>
+#include <algorithm>
 #include <QSql>
 #include <QSqlDatabase>
 #include <QSqlQuery>
@@ -60,6 +62,10 @@ QAppWindow::QAppWindow(QWidget *parent) :
            break;
         }
     }
+    for(int i = 0; i < tcplink->friendVect.size(); i++)
+    {
+        qDebug() << tcplink->friendVect[i];
+    }
 
     //建树
     build_tree();
@@ -78,7 +84,7 @@ void QAppWindow::fetchDatabase()
     QSqlQuery query;    // 数据库查询
     query.exec("select * from friends");    // 指定查找数据库中 friends 表
     bool selfincluded = false;      // 自身是否包含在数据库中
-    while(query.next()) // 便利整张表
+    while(query.next()) // 遍历整张表
     {
         FriendInfo tempfriend;
         // 0 ID
@@ -253,7 +259,7 @@ void QAppWindow::newReply(qint32 replyKind)
     /** 查找好友结果 */
     case FRIEND_ONLINE:
         qDebug() << "已找到用户" << tcplink->friendInfo.account << "IP地址: " << tcplink->friendInfo.node.hostAddr;
-
+//        tcplink->friendVect.
 
         switch(friendMsgBox.question( this, "查找好友",
                                       "好友在线\n"

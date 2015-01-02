@@ -148,13 +148,20 @@ struct FriendInfo
 
     friend QDataStream & operator<< (QDataStream &qos, const FriendInfo &fi)
     {
-        qos << fi.account << fi.name << fi.avatar << fi.status
+        qos << fi.account << fi.name << fi.avatar << fi.node.hostAddr << fi.status
             << fi.about << fi.friendKind << fi.remark;
         return qos;
     }
+    friend QDebug operator << (QDebug qd, const FriendInfo &fi) // 重载 qDebug() 数据流
+    {
+        qd << fi.account << fi.name << fi.avatar << fi.node.hostAddr << fi.status
+            << fi.about << fi.friendKind << fi.remark;
+        return qd;
+    }
+
     friend QDataStream & operator>> (QDataStream &qis, FriendInfo &fi)
     {
-        qis >> fi.account >> fi.name >> fi.avatar >> fi.status
+        qis >> fi.account >> fi.name >> fi.avatar >> fi.status >> fi.node.hostAddr
             >> fi.about >> fi.friendKind >> fi.remark;
         return qis;
     }

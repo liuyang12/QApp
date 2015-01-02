@@ -24,10 +24,10 @@ TCPLink::~TCPLink()
 // 作为服务器初始化
 void TCPLink::initasServer()
 {
-    FriendInfo myself;
-    myself.account = loginInfo.account;
-    myself.status = loginInfo.status;
-    friendVect.push_back(myself);  // myself = friendVect[0]，第 0 位好友为其本身
+//    FriendInfo myself;
+//    myself.account = loginInfo.account;
+//    myself.status = loginInfo.status;
+//    friendVect.push_back(myself);  // myself = friendVect[0]，第 0 位好友为其本身
     userInfo.account = loginInfo.account;
     userInfo.status = loginInfo.status = ONLINE;
     timer = new QTimer;
