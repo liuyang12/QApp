@@ -11,12 +11,16 @@ chatWindow::chatWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     tcpClient = new QTcpSocket(this);
+    FileConnect = false;
+    //建立发送文件的Socket
     ui->sendFileButton->setEnabled(false);
-
-    connect(tcpClient,SIGNAL(connected()),this,SLOT(StartTransmit()));
-    //当连接服务器成功时，发出connected()信号，我们开始传送文件
+    //初始化发送文件不可用，需先打开文件
+    ui->clientStatusLabel->setVisible(false);
+    ui->clientProgressBar->setVisible(false);
+    connect(tcpClient,SIGNAL(readyRead()),this,SLOT(StartTransmit()));
+    //连接服务器成功，发出connected()信号，开始传送文件
     connect(tcpClient,SIGNAL(bytesWritten(qint64)),this,SLOT(UpdateProgressBar(qint64)));
-    //当有数据发送成功时，我们更新进度条
+    //更新进度条
     connect(tcpClient,SIGNAL(error(QAbstractSocket::SocketError)),this,
             SLOT(displayError(QAbstractSocket::SocketError)));
 
@@ -65,11 +69,13 @@ void chatWindow::GetFriendInfo(FriendInfo info)
 //打开文件
 void chatWindow::on_openFileButton_clicked()
 {
+    SendFile.EachSize = 4*1024;
     SendFile.FileName = QFileDialog::getOpenFileName(this);
     if(!SendFile.FileName.isEmpty())
     {
         ui->sendFileButton->setEnabled(true);
-        ui->clientStatusLabel->setText(tr("打开文件 %1 成功！").arg(SendFile.FileName));
+        ui->clientStatusLabel->setVisible(true);
+        ui->clientStatusLabel->setText(tr("打开成功"));
     }
 }
 
@@ -77,52 +83,71 @@ void chatWindow::on_openFileButton_clicked()
 void chatWindow::on_sendFileButton_clicked()
 {
     ui->sendFileButton->setEnabled(false);
+    ui->clientProgressBar->setVisible(true);
     SendFile.FinishedBytes = 0;
-    ui->clientStatusLabel->setText(tr("连接中…"));
+    FileConnect = false;
+    ui->clientStatusLabel->setText(tr("正在连接"));
     tcpClient->connectToHost(friendInfo.node.hostAddr, /*getPortNumber(friendInfo.account)*/16666);
+    char *Mess = "TRANS";
+    tcpClient->write(Mess);
 }
 
 void chatWindow::StartTransmit()
 {
-    SendFile.File = new QFile(SendFile.FileName);
-    if(!SendFile.File->open(QFile::ReadOnly))
+    if(!FileConnect)
     {
-        qDebug() << "open file error!";
-        return;
+        QString str = "ACCEPT";
+        if(str == tcpClient->readAll())
+        {
+            FileConnect = true;
+            SendFile.File = new QFile(SendFile.FileName);
+            if(!SendFile.File->open(QFile::ReadOnly))
+            {
+                qDebug() << "open file error!";
+                return;
+            }
+            SendFile.WholeBytes = SendFile.File->size();
+            QDataStream Out(&SendFile.Buffer,QIODevice::WriteOnly);
+            Out.setVersion(QDataStream::Qt_5_3);
+            QString current = SendFile.FileName.right(SendFile.FileName.size() - SendFile.FileName.lastIndexOf('/')-1);
+            Out << qint64(0) << qint64(0) << current;
+            SendFile.WholeBytes += SendFile.Buffer.size();
+            Out.device()->seek(0);
+            Out << SendFile.WholeBytes << qint64((SendFile.Buffer.size() - sizeof(qint64)*2));
+            SendFile.TodoBytes = SendFile.WholeBytes - tcpClient->write(SendFile.Buffer);
+            ui->clientStatusLabel->setText(tr("开始传输"));
+            SendFile.Buffer.resize(0);
+        }
+        else
+            ui->clientStatusLabel->setText(tr("对方拒收"));
     }
-    SendFile.WholeBytes = SendFile.File->size();
-    QDataStream Out(&SendFile.Buffer,QIODevice::WriteOnly);
-    Out.setVersion(QDataStream::Qt_5_3);
-    QString current = SendFile.FileName.right(SendFile.FileName.size() - SendFile.FileName.lastIndexOf('/')-1);
-    Out << qint64(0) << qint64(0) << current;
-    SendFile.WholeBytes += SendFile.Buffer.size();
-    Out.device()->seek(0);
-    Out << SendFile.WholeBytes << qint64((SendFile.Buffer.size() - sizeof(qint64)*2));
-    SendFile.TodoBytes = SendFile.WholeBytes - tcpClient->write(SendFile.Buffer);
-    ui->clientStatusLabel->setText(tr("已连接"));
-    SendFile.Buffer.resize(0);
 }
 
 void chatWindow::UpdateProgressBar(qint64 temp)
 {
-    SendFile.FinishedBytes += (int)temp;
-    if(SendFile.TodoBytes > 0)
+    if(FileConnect)
     {
-        SendFile.Buffer = SendFile.File->read(qMin(SendFile.TodoBytes,SendFile.EachSize));
-        SendFile.TodoBytes -= (int)tcpClient->write(SendFile.Buffer);
-        SendFile.Buffer.resize(0);
-    }
-    else
-    {
-        SendFile.File->close();
-    }
-    ui->clientProgressBar->setMaximum(SendFile.WholeBytes);
-    ui->clientProgressBar->setValue(SendFile.FinishedBytes);
+        ui->clientStatusLabel->setText(tr("正在传输"));
+        SendFile.FinishedBytes += (int)temp;
+        if(SendFile.TodoBytes > 0)
+        {
+            SendFile.Buffer = SendFile.File->read(qMin(SendFile.TodoBytes,SendFile.EachSize));
+            SendFile.TodoBytes -= (int)tcpClient->write(SendFile.Buffer);
+            SendFile.Buffer.resize(0);
+        }
+        else
+        {
+            SendFile.File->close();
+        }
+        ui->clientProgressBar->setMaximum(SendFile.WholeBytes);
+        ui->clientProgressBar->setValue(SendFile.FinishedBytes);
 
-    if(SendFile.FinishedBytes == SendFile.WholeBytes)
-    {
-        ui->clientStatusLabel->setText(tr("传送文件 %1 成功").arg(SendFile.FileName));
-        SendFile.File->close();
+        if(SendFile.FinishedBytes == SendFile.WholeBytes)
+        {
+            ui->clientStatusLabel->setText(tr("发送成功").arg(SendFile.FileName));
+            SendFile.File->close();
+            tcpClient->close();
+        }
     }
 }
 
@@ -131,7 +156,7 @@ void chatWindow::displayError(QAbstractSocket::SocketError)
     qDebug() << tcpClient->errorString();
     tcpClient->close();
     ui->clientProgressBar->reset();
-    ui->clientStatusLabel->setText(tr("客户端就绪"));
+    ui->clientStatusLabel->setText(tr("传输异常"));
     ui->sendFileButton->setEnabled(true);
 }
 // 连接成功，发送消息
@@ -154,7 +179,7 @@ void chatWindow::appendShowLine()
     // 将接收到的信息显示在输出框
     QString datetime = getCurrentDateTime();
     /// todo 最前面加好友昵称
-    QString temp = QString("<font size=\"3\" color=green>(<font color=dodgerblue><u>%1</u></font>) %2</font>%3").arg(friendInfo.account).arg(datetime).arg(recieveString);
+    QString temp = QString("<font size=\"3\" color=blue>(<font color=dodgerblue><u>%1</u></font>) %2</font>%3").arg(friendInfo.account).arg(datetime).arg(recieveString);
     ui->Show_message->append(temp); // 显示在输出框
 }
 

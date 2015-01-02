@@ -140,7 +140,7 @@ p, li { white-space: pre-wrap; }
     </rect>
    </property>
    <property name="text">
-    <string>发送</string>
+    <string>发送文件</string>
    </property>
   </widget>
   <widget class="QLabel" name="clientStatusLabel">
@@ -157,6 +157,9 @@ p, li { white-space: pre-wrap; }
    </property>
   </widget>
   <widget class="QProgressBar" name="clientProgressBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>531</x>
@@ -167,6 +170,9 @@ p, li { white-space: pre-wrap; }
    </property>
    <property name="value">
     <number>0</number>
+   </property>
+   <property name="textVisible">
+    <bool>true</bool>
    </property>
   </widget>
   <widget class="QPushButton" name="sendMsgButton">
