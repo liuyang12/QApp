@@ -24,9 +24,11 @@ public:
     QPoint dragPosition;//拖动窗口
 
     bool flag;
+    void fetchDatabase(void);           // 从数据库拉取数据，更新 friendVect[]
 
 private slots:
     void newReply(qint32 replyKind);    // 收到新的回复信息
+    void travelsalReply(qint32 replyKind);  // 好友遍历回复
     void initStatus(void);              // 初始化状态
 ////    void connectedStatus(void);         // 连接建立后状态
 ////    void connectionFailed(void);        // 与服务器连接失败

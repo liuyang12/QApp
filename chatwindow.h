@@ -31,6 +31,8 @@ private:
     qint16 blockSize;       // 块大小
 
     QString getCurrentDateTime(void);   // 获取当前日期时间
+protected:
+    bool eventFilter(QObject *, QEvent *);  // 重写虚函数事件过滤
 
 public slots:
     void GetFriendInfo(FriendInfo); //获取好友信息
@@ -46,6 +48,8 @@ private slots:
     void on_openFileButton_clicked();
     void on_sendFileButton_clicked();
     void on_sendMsgButton_clicked();
+//    void on_comboBox_activated(int index);
+
 signals:
     void connectionFailedSignal();
 };

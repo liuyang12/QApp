@@ -1,4 +1,8 @@
 #include "tcplink.h"
+#include <QSql>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 
 TCPLink::TCPLink(const ServerNode &node, QObject *parent/* = 0*/) :
     QObject(parent), serverNode(node)
@@ -202,6 +206,13 @@ void TCPLink::sendRequest()
         qDebug() << QueryInfo;
         tcpClient->write(QueryInfo.toStdString().c_str());      // 发送查找好友请求
         break;
+    case TRAVELSAL: // 遍历好友在线状况
+        // 查找好友请求 "q$account"
+        QueryInfo = "q" + travelsalFriend.account;
+        qDebug() << QueryInfo;
+        tcpClient->write(QueryInfo.toStdString().c_str());      // 发送查找好友请求
+        tcpClient->waitForReadyRead(1000);// 等待发送完成
+        break;
     case LOGOUT:    // 登出请求
         // 登出请求 "logout$account"
         LogoutInfo = "logout" + loginInfo.account;
@@ -241,6 +252,7 @@ void TCPLink::readResult()
     switch (requestKind) {
     case LOGIN:
     case QUERY:
+    case TRAVELSAL:
     case LOGOUT:
         qba = tcpClient->readAll();
         Reply = QVariant(qba).toString();
@@ -318,6 +330,33 @@ void TCPLink::readResult()
             replyKind = FRIEND_NO_ACCOUNT;
             friendInfo.status = OFFLINE;
         }
+        break;
+    case TRAVELSAL: // 遍历好友在线状态
+        if(Reply == "n")    // 服务器返回 "n"，则好友离线
+        {
+            replyKind = FRIEND_OFFLINE;
+            travelsalFriend.status = OFFLINE;
+        }
+        else if(ipRegExp.exactMatch(Reply)) // 匹配 IP 地址正则表达式
+        {
+            replyKind = FRIEND_ONLINE;
+            travelsalFriend.status = ONLINE;
+            travelsalFriend.node.hostAddr = Reply;      // 服务器返回 IP 地址
+            travelsalFriend.node.hostPort = getPortNumber(travelsalFriend.account); // 好友作为服务器的端口号即为账号后4位数字
+        }
+        else if(Reply == "")
+        {
+            replyKind = NO_REPLY;
+            travelsalFriend.status = OFFLINE;
+        }
+        else
+        {
+            replyKind = FRIEND_NO_ACCOUNT;
+            travelsalFriend.status = OFFLINE;
+        }
+        blockSize = 0;
+        emit travelsalReplySignal(replyKind);   // 遍历好友回复信号
+        return ;    // 直接返回，不发出其他回复信号
         break;
     case LOGOUT:
         if(Reply == "loo")
@@ -412,6 +451,142 @@ void TCPLink::messageRequest(Message &msg/* = message*/)
     message = msg;
     newConnect();
 }
+// 遍历所有好友请求
+bool TCPLink::travelsalRequest(void)
+{
+//    requestKind = TRAVELSAL;    // 遍历好友
+//    travelsalFriend.account = account; // 置为当前遍历好友的账号
+//    newConnect();
+    blockSize = 0;
+    bool selfincluded = false;      // 自身是否包含在数据库中
+    bool allReplyed = true;     // 所有查询均收到服务器回复
+    if(!isConnected)
+    {
+        tcpClient->abort();
+        tcpClient->connectToHost(serverNode.hostAddr, serverNode.hostPort);
+    }
+    else
+    {
+        QSqlQuery query;    // 数据库查询
+        query.exec("select * from friends");    // 指定查找数据库中 friends 表
+
+        while(query.next()) // 遍历整张表
+        {
+            FriendInfo tempfriend;
+            // 0 ID
+            tempfriend.account = query.value(1).toString();     // 1 账号
+            tempfriend.name = query.value(2).toString();        // 2 昵称
+            tempfriend.avatar = query.value(3).toString();      // 3 头像路径，相对路径
+            // 4 IP
+            // 5 status
+            tempfriend.block = query.value(6).toString();       // 6 所在分组
+            tempfriend.group = query.value(7).toString();       // 7 所在群
+//            travelsalRequest(tempfriend.account);  // 遍历好友在线状态请求
+            QString QueryInfo;
+            QueryInfo = "q" + tempfriend.account;
+            qDebug() << QueryInfo;
+            tcpClient->write(QueryInfo.toStdString().c_str());
+            if(tcpClient->waitForReadyRead(500))   // 等待数据可读 500ms超时
+            {   // 有数据
+                QByteArray qba;
+                QString Reply;
+                qba = tcpClient->readAll();
+                Reply = QVariant(qba).toString();
+                QSqlQuery qr;
+                qDebug() << Reply;
+                if(Reply == "n")
+                {
+                    // 好友不在线
+                    qr.prepare("update friends set status = :status where account = :account");
+                    qr.bindValue(":account", tempfriend.account);
+                    qr.bindValue(":status", OFFLINE);    // 在线状态 status
+                    qr.exec();
+//                    query.exec();
+                    tempfriend.status = OFFLINE;
+                    qDebug() << "好友" << tempfriend.account << "离线";
+//                    replyKind = FRIEND_OFFLINE;
+//                    friendInfo.status = OFFLINE;
+                }
+                else if(ipRegExp.exactMatch(Reply))
+                {
+                    qr.prepare("update friends set status = :status where account = :account");
+                    qr.bindValue(":account", tempfriend.account);
+                    qr.bindValue(":status", ONLINE);    // 在线状态 status
+                    qr.exec();
+                    qr.prepare("update friends set IP = :IP where account = :account");
+                    qr.bindValue(":account", tempfriend.account);
+                    qr.bindValue(":IP", Reply);    // IP地址 IP
+                    qr.exec();
+//                    query.bindValue(4, Reply);  // IP
+//                    query.bindValue(5, ONLINE); // status
+//                    query.exec();
+                    tempfriend.node.hostAddr = Reply;
+                    tempfriend.status = ONLINE;
+                    qDebug() << "好友" << tempfriend.account << "在线，IP地址: " << Reply;
+//                    replyKind = FRIEND_ONLINE;
+//                    friendInfo.status = ONLINE;
+//                    friendInfo.node.hostAddr = Reply;       // IP 地址为回复信息
+//                    friendInfo.node.hostPort = getPortNumber(friendInfo.account);   // 端口号为 账号后4位数字
+                }
+                else if(Reply == "")
+                {
+//                    replyKind = NO_REPLY;
+//                    friendInfo.status = OFFLINE;
+                    allReplyed = false;
+                }
+                else
+                {
+//                    replyKind = FRIEND_NO_ACCOUNT;
+//                    friendInfo.status = OFFLINE;
+                    allReplyed = false;
+                }
+
+            }
+            else
+            {
+                allReplyed = false; // 只要有一个回复未收到或者超时即未完全回复
+            }
+            if(tempfriend.account == loginInfo.account)    // 如果数据库中好友为本身
+            {
+                friendVect.push_front(tempfriend); // 在最前端的好友中加自己 friendVect[0] 默认为自己
+                selfincluded = true;
+    //            friendVect.insert(friendVect.begin(), tempfriend);    //
+            }
+            else
+            {
+                friendVect.push_back(tempfriend);  // 默认其他好友添加至最后
+            }
+        }
+        if(false == selfincluded)       // 数据库中未包含自身，另行添加
+        {
+            FriendInfo myself;
+            myself.account = loginInfo.account;
+            myself.name = loginInfo.nickname;
+            myself.avatar = loginInfo.avatar;
+            friendVect.push_front(myself); // 在最前端插入自己为好友
+            // 在数据库中做填补工作
+            query.prepare("INSERT INTO friends (ID, account, nickname, avatar, IP, status, block, group) VALUES (:ID, :account, :nickname, :avatar, :IP, :status, :block, :group)");
+            query.bindValue(":account", myself.account);
+            query.bindValue(":nickname", myself.name);
+            query.bindValue(":avatar", myself.avatar);
+            bool bsuccess = query.exec();
+            if(false == bsuccess)
+            {
+                QString queryError = query.lastError().text();
+                qDebug() << "插入个人信息不成功，错误代码：" << queryError;
+            }
+            else
+            {
+                qDebug() << "成功插入个人信息";
+            }
+
+        }
+
+    }
+    return allReplyed;
+
+}
+
 /// 与好友（服务器）通信，向好友发送请求
 // 添加好友请求
 void TCPLink::addFriendRequest()

@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     login log_in;
     log_in.setWindowFlags(Qt::FramelessWindowHint);     // 设置窗口无边框
     log_in.show();
-    db.close();
+//    db.close();
 
     return a.exec();
 }

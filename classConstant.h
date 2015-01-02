@@ -22,7 +22,8 @@ enum REQUEST{   // 请求
     LOGOUT = 12,    // 登出 = 12
     MESSAGE = 13,   // 发送信息 = 13
     ADD_FRIEND = 14,  // 发送好友请求 = 14
-    GET_FRIEND = 15     // 好友请求
+    GET_FRIEND = 15,     // 好友请求
+    TRAVELSAL = 16      // 遍历查询所有好友状态
 };
 enum REPLY{     // 回复
     NO_REPLY = 99,          // 无回复
@@ -102,8 +103,10 @@ struct UserInfo{
 };
 // 用户登录信息类
 struct LoginInfo{
-    QString account;
-    QString password;
+    QString account;    // 用户登录账号
+    QString password;   // 用户登录密码
+    QString nickname;   // 昵称
+    QString avatar;     // 头像路径
     int status;         // 状态
     int request;        // 请求
     LoginInfo()
@@ -129,26 +132,29 @@ struct FriendInfo
     QTcpSocket *tcpSocket;    // 每个好友与自身服务器建立的TCP socket
     bool isConnected;       // 与该好友已经建立 TCP 通信
     QString name;           // 好友名字
-    int avatarNumber;       // 好友头像编号
+    QString avatar;       // 好友头像路径（相对路径）
     int status;             // 好友在线状态
+    QString block;          // 好友所在分组
+    QString group;          // 好友所在的群
+
     QString about;          // 好友信息
     int friendKind;        //好友类型
     QString remark;			//好友备注
 
     FriendInfo()
-    {	avatarNumber = status = friendKind = 0;
+    {	avatar = status = friendKind = 0;
         isConnected = false;
     }
 
     friend QDataStream & operator<< (QDataStream &qos, const FriendInfo &fi)
     {
-        qos << fi.account << fi.name << fi.avatarNumber << fi.status
+        qos << fi.account << fi.name << fi.avatar << fi.status
             << fi.about << fi.friendKind << fi.remark;
         return qos;
     }
     friend QDataStream & operator>> (QDataStream &qis, FriendInfo &fi)
     {
-        qis >> fi.account >> fi.name >> fi.avatarNumber >> fi.status
+        qis >> fi.account >> fi.name >> fi.avatar >> fi.status
             >> fi.about >> fi.friendKind >> fi.remark;
         return qis;
     }

@@ -27,6 +27,7 @@ public:
     UserInfo userInfo;      // 用户信息
     LoginInfo loginInfo;    // 登录信息
     FriendInfo friendInfo;  //好友信息，待加为好友
+    FriendInfo travelsalFriend;   // 遍历账号好友
     Message message;        // 会话消息
     QVector<Message> messageVect;   // 消息向量
     QVector<FriendInfo> friendVect; // 好友列表，已添加为好友
@@ -49,6 +50,7 @@ public:
     void queryRequest(FriendInfo &frd/* = friendInfo*/);        // 查找好友请求
     void logoutRequest(UserInfo &user/* = userInfo*/);       // 登出请求
     void messageRequest(Message &msg/* = message*/);        // 会话消息请求
+    bool travelsalRequest(void);        // 遍历所有好友在线状态，同时获取相应的 IP 地址
     // 用户请求 - 与好友（服务器）
     void addFriendRequest(void);        // 添加好友请求
 
@@ -60,6 +62,7 @@ private:
     void newTCPConnection();    // 与好友（服务器）建立新连接
 signals:
     void newReplySignal(qint32 replyKind);  // 新建请求信号
+    void travelsalReplySignal(qint32 replyKind); // 遍历好友恢复信号
     void connectionFailedSignal();          // 连接失败信号
     void disconnectedSignal();              // 断开连接信号
 

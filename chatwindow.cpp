@@ -1,5 +1,6 @@
 #include "chatwindow.h"
 #include "ui_chatwindow.h"
+#include <QDateTime>
 #include "tcplink.h"
 
 extern TCPLink *tcplink;           // tcplink 全局变量
@@ -22,12 +23,28 @@ chatWindow::chatWindow(QWidget *parent) :
     // 聊天窗口初始化
     blockSize = 0;
     ui->Show_message->setReadOnly(true);    // 消息显示窗口只读
+    ui->Edit_message->installEventFilter(this);
 }
 
 chatWindow::~chatWindow()
 {
     tcpClient->close();
     delete ui;
+}
+// 重写事件过滤虚函数
+bool chatWindow::eventFilter(QObject *obj, QEvent *ev)
+{
+    Q_ASSERT(obj == ui->Edit_message);  // 目标设定为 Edit_message，使之响应 按键
+    if(ev->type() == QEvent::KeyPress)
+    {
+        QKeyEvent *keyevent = static_cast<QKeyEvent *>(ev);
+        if(keyevent->key() == Qt::Key_Return/* && (keyevent->modifiers() & Qt::ControlModifier)*/) // 回车键按下即发送消息
+        {
+            chatWindow::on_sendMsgButton_clicked(); // 发送消息
+            return true;
+        }
+    }
+    return false;
 }
 
 void chatWindow::initSocket()
@@ -136,7 +153,8 @@ void chatWindow::appendShowLine()
 {
     // 将接收到的信息显示在输出框
     QString datetime = getCurrentDateTime();
-    QString temp = QString("<font size=\"4\" color=blue>%1    %2: </font>%3").arg(friendInfo.account).arg(datetime).arg(recieveString);
+    /// todo 最前面加好友昵称
+    QString temp = QString("<font size=\"3\" color=green>(<font color=dodgerblue><u>%1</u></font>) %2</font>%3").arg(friendInfo.account).arg(datetime).arg(recieveString);
     ui->Show_message->append(temp); // 显示在输出框
 }
 
@@ -198,22 +216,25 @@ void chatWindow::displaySocketError(QAbstractSocket::SocketError socketError)
 // 获取当前日期时间
 QString chatWindow::getCurrentDateTime()
 {
-    QTime time = QTime::currentTime();
-    QDate date = QDate::currentDate();
-    return QString("%1  %2").arg(date.toString(Qt::ISODate)).arg(time.toString(Qt::ISODate));
+     QDateTime datetime = QDateTime::currentDateTime();
+     return datetime.toString("yyyy/M/d h:m:s");   // 获取当前时间 格式如 2015/1/1 6:36:11
+//    QTime time = QTime::currentTime();
+//    QDate date = QDate::currentDate();
+//    return QString("%1 %2").arg(date.toString(Qt::ISODate)).arg(time.toString(Qt::ISODate));
 }
 
 // 发送消息按下
 void chatWindow::on_sendMsgButton_clicked()
 {
     // 如果输入框为空，则忽略此消息，不予发送
-    if(ui->Edit_massage->toPlainText().isEmpty())
+    if(ui->Edit_message->toPlainText().isEmpty())
         return ;
     // 获取输入框消息，并更新输出框
-    QString tmpString = ui->Edit_massage->toHtml();    // 以Html格式发送
-    ui->Edit_massage->clear();  // 输入框清空
+    QString tmpString = ui->Edit_message->toHtml();    // 以Html格式发送
+    ui->Edit_message->clear();  // 输入框清空
     QString datetime = getCurrentDateTime();
-    sendString = QString("<font size=\"4\" color=green>%1    %2: </font>%3").arg(tcplink->loginInfo.account).arg(datetime).arg(tmpString);   // 转为 HTML 账号-时间-消息
+    /// todo 最前面加自己的昵称
+    sendString = QString("<font size=\"3\" color=green>(<font color=dodgerblue><u>%1</u></font>) %2</font>%3").arg(tcplink->loginInfo.account).arg(datetime).arg(tmpString);   // 转为 HTML 账号-时间-消息
     ui->Show_message->append(sendString);   // 显示在输入窗口
     // 发送消息
     QByteArray block;
@@ -228,3 +249,8 @@ void chatWindow::on_sendMsgButton_clicked()
     qDebug() << tmpString;
 
 }
+
+//void chatWindow::on_comboBox_activated(int index)
+//{
+
+//}

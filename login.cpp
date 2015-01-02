@@ -77,7 +77,7 @@ login::login(QWidget *parent) :
 
     this->setWindowFlags(Qt::FramelessWindowHint);     // 设置窗口无边框
     this->ui->EditNumber->setText(tr("2012011"));
-    this->ui->EditPassword->setText(tr(""));
+    this->ui->EditPassword->setText(tr("net2014"));
     this->ui->EditPassword->setEchoMode(QLineEdit::Password);
     // 登录界面初始设置
     login::initStatus();
