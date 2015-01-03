@@ -57,6 +57,16 @@ void TCPLink::disconnectfriendSocket()
     disconnect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
     disconnect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
 }
+ // 在 friendVect[] 中查找相应的账号，如果存在则已经是好友，返回序号，如果不存在则还不是好友返回 -1
+int TCPLink::findAccount(QString &account)
+{
+    for(int i = 0; i < friendVect.size(); i++)
+    {
+        if(friendVect[i].account == account)
+            return i;
+    }
+    return -1;
+}
 
 // 监听客户端请求，端口号 为学号后四位数字，以
 void TCPLink::newListen()
@@ -80,7 +90,51 @@ void TCPLink::acceptConnection()
         friendInfo.node.hostAddr = friendInfo.tcpSocket->peerAddress().toString();   // 获取客户端IP地址
         //    friendInfo.node.hostPort = friendInfo.tcpSocket->peerPort();  // 获取客户端端口号
         qDebug() << "accept connection from client: " << friendInfo.node.hostAddr;
-        // 当tcpSocket在接受客户端连接时出现错误时，displayError(QAbstractSocket::SocketError) 处理该信号
+        friendInfo.isConnected = true;  // 已连接
+//        if(friendInfo.tcpSocket->waitForReadyRead(500)) // 等待接收客户端的标识信息
+//        {
+//            QByteArray qba;
+//            QString Reply;
+//            qba = friendInfo.tcpSocket->readAll();
+//            Reply = QVariant(qba).toString();
+//            qDebug() << Reply;
+//            if(Reply.left(8) == "connect_")     // 收到的好友回复信息为 "connect_$account"
+//            {
+//                QString friendAccount;
+//                friendAccount = Reply.right(10);    // 好友账号为右边十位
+//                int friendNumber = findAccount(friendAccount);
+//                if(-1 == friendNumber)    // 还不是好友
+//                {
+//                    friendInfo.account = friendAccount;
+//                    friendInfo.status = ONLINE;
+//                    emit newReplySignal(ADDFRIEND_REQUEST); // 发出接收到请求加为好友的请求
+//                    // 当tcpSocket在接受客户端连接时出现错误时，displayError(QAbstractSocket::SocketError) 处理该信号
+//                    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+//                    // 获取发送的数据信息
+//                    /** friendInfo.tcpSocket = tcpSender */
+//                    connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
+//                    connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
+//                }
+//                else    // 已经是好友了 i，开始聊天
+//                {
+//                    friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;      // 将这个 TCPSocket 与该好友绑定
+//                    friendInfo.tcpSocket = new QTcpSocket;  // 为 friendInfo new 一个新的 TCPSocket
+//                    friendInfo.tcpSocket = false;
+//                    friendVect[friendNumber].isConnected = true;
+//                    replyKind = STARTCHAT_REQUEST;
+//                    friendInfo = friendVect[friendNumber];  // 作临时赋值
+//                    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+//                    // 获取发送的数据信息
+//                    /** friendInfo.tcpSocket = tcpSender */
+//                    connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
+//                    connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
+//                //    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));    // 处理错误信息
+//                    emit newReplySignal(replyKind); // 接收到好友聊天请求
+//                }
+
+//            }
+
+//        }
         connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
         // 获取发送的数据信息
         /** friendInfo.tcpSocket = tcpSender */
@@ -104,28 +158,91 @@ void TCPLink::acceptConnection()
 // 建立连接到该好友的
 void TCPLink::newTCPConnection()
 {
-    if(friendInfo.isConnected == false)
+//    QStringList strList;
+    int friendNumber;
+    friendNumber = findAccount(friendInfo.account);
+    if(friendNumber > -1)
+        friendInfo.isConnected = friendVect[friendNumber].isConnected;
+    if(friendNumber != 0 && friendInfo.isConnected == false)
     {
         friendInfo.tcpSocket->abort();
         friendInfo.tcpSocket->connectToHost(friendInfo.node.hostAddr, getPortNumber(friendInfo.account) /*friendInfo.node.hostPort*/); // 连接到 待加好友服务器，IP地址为回复，端口号为好友账号后四位
         qDebug() << "connect to host: IP " << friendInfo.node.hostAddr << " port " << getPortNumber(friendInfo.account);
+//        if(-1 == friendNumber)  // 还不是好友，需要接下来发送好友请求
+//        {
+//            return ;
+//        }
+//        if(ADD_FRIEND == requestKind)
+//            requestKind = 0;    // 避免再次发送好友请求消息
+//        if(friendInfo.tcpSocket->waitForConnected(500)) // 等待与好友服务器建立连接 500ms超时
+//        {
+//            QString connectStr;
+//            connectStr = "connect_" + loginInfo.account;
+//            friendInfo.tcpSocket->write(connectStr.toStdString().c_str());  // 连接至好友服务器，并发送 "connect_$account" 作标识，对方（服务器端）同时等待接收
+//            qDebug() << connectStr;
+//            friendInfo.isConnected = true;  // 已经建立与好友的连接
+//            if(-1 == friendNumber)  // 还不是好友，需要接下来发送好友请求，相当于已经发送了好友请求
+//            {
+//                if(ADD_FRIEND == requestKind)
+//                    requestKind = 0;
+//                return ;
+//            }
+//            friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;  // 将这个 tcpSocket 赋予该好友
+////            friendInfo.tcpSocket = new QTcpSocket;  // 重新建立新的TCPSocket
+////            friendInfo.isConnected = false;
+//            friendInfo = friendVect[friendNumber];
+//            connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+//            // 获取发送的数据信息
+//            /** friendInfo.tcpSocket = tcpSender */
+//            connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
+//            connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
+//        //    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));    // 处理错误信息
 
-//        friendInfo.isConnected = true;
+//            friendVect[friendNumber].isConnected = true;
+//            if(ADD_FRIEND == requestKind)
+//                requestKind = 0;
+//            else if(STARTCHAT_REQUEST == requestKind)   // 如果请求开始聊天，直接开始聊天
+//            {
+//                replyKind = STARTCHAT_SUCCESS;
+//                emit newReplySignal(replyKind);
+//            }
+//            else
+//                TCPLink::sendData();
+//        }
+
+////        friendInfo.isConnected = true;
     }
     else
     {
-        TCPLink::sendData();
+//        if(-1 == friendNumber || START_CHAT == requestKind)
+//        if(requestKind != CONNECT)
+            TCPLink::sendData();    // 只有还不是好友，才发送好友请求
     }
 
 }
 // 发送请求
 void TCPLink::sendData()
 {
-
+    int friendNumber;
+    friendNumber = findAccount(friendInfo.account);
     switch (requestKind) {
-    case ADD_FRIEND:       // 发送好友请求
-        qDebug() << loginInfo.account.toStdString().c_str();
-        friendInfo.tcpSocket->write(loginInfo.account.toStdString().c_str());
+    case ADD_FRIEND:       // 发送好友请求 "add_$account"
+        qDebug() << tr("add_")<<loginInfo.account;
+        friendInfo.tcpSocket->write(QString("add_"+loginInfo.account).toStdString().c_str());
+        break;
+    case START_CHAT:        // 发出聊天请求 "chat_$account"
+        qDebug() << tr("chat_") << loginInfo.account;
+        friendInfo.tcpSocket->write(QString("chat_"+loginInfo.account).toStdString().c_str());
+        friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
+        friendVect[friendNumber].isConnected = true;    // 已经连接
+
+        break;
+    case CONNECT:           // 发出连接请求 "connect_$account"
+        friendInfo.tcpSocket->write(QString("connect_"+loginInfo.account).toStdString().c_str());
+        qDebug() << tr("connect_") << loginInfo.account;
+        friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
+        friendVect[friendNumber].isConnected = true;    // 已经连接
+
         break;
 //    case :
 
@@ -133,19 +250,73 @@ void TCPLink::sendData()
     default:
         break;
     }
+    friendInfo.isConnected = true;  // 已经建立与好友的连接
 }
 // 读取请求
 void TCPLink::recieveData()
 {
    QByteArray qba;
    QString Reply;
+   int friendNumber;
    qba = friendInfo.tcpSocket->readAll();
    Reply = QVariant(qba).toString();
    qDebug() << Reply;
-   if(Reply.size() == 10/*accountRegExp.exactMatch(Reply)*/)       // 回复匹配学号
+   if(Reply.left(8) == "connect_")  // 好友发出连接请求
+   {
+        friendInfo.account = Reply.right(10);
+        friendNumber = findAccount(friendInfo.account);
+        if(-1 == friendNumber)
+        {
+            qDebug() << "用户" << friendInfo.account << "还不是您的好友\n别忘了返回添加哦~";
+        }
+        else if(0 == friendNumber)
+        {
+            qDebug() << "亲爱的" << friendVect[findAccount(loginInfo.account)].name << "，目前还不支持同一账号多客户端登陆哦~\n您可以等待我们的更新，谢谢！";
+        }
+        else
+        {
+            friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
+            friendVect[friendNumber].isConnected = friendInfo.isConnected;
+            friendVect[friendNumber].node.hostAddr = friendVect[friendNumber].node.hostAddr;
+        }
+        replyKind = CONNECT_REQUEST;
+   }
+   else if(Reply == "connected")    // 好友已经连接
+   {
+       replyKind = CONNECT_SUCCESS;
+   }
+   else if(Reply.left(5) == "chat_") // 对方发起聊天请求
+   {
+       friendInfo.account = Reply.right(10);
+       friendNumber = findAccount(friendInfo.account);
+       if(-1 == friendNumber)
+       {
+           qDebug() << "用户" << friendInfo.account << "还不是您的好友\n别忘了返回添加哦~";
+       }
+       else if(0 == friendNumber)
+       {
+           qDebug() << "亲爱的" << friendVect[0].name << "，目前还不支持同一账号多客户端登陆哦~\n您可以等待我们的更新，谢谢！";
+       }
+       else
+       {
+           friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
+           friendVect[friendNumber].isConnected = friendInfo.isConnected;
+           friendVect[friendNumber].node.hostAddr = friendVect[friendNumber].node.hostAddr;
+       }
+       replyKind = STARTCHAT_REQUEST;   // 发起聊天请求
+   }
+   else if(Reply == "start_chat")
+   {
+       replyKind = STARTCHAT_SUCCESS;
+   }
+   else if(Reply == "cancel_chat")
+   {
+       replyKind = STARTCHAT_DENY;
+   }
+   else if(Reply.left(4) == "add_"/*accountRegExp.exactMatch(Reply)*/)       // 回复匹配学号
    {
 //       chatWindow *chat;
-       friendInfo.account = Reply;
+       friendInfo.account = Reply.right(10);
 //       friendInfo.node = friendInfo.tcpSocket-
        replyKind = ADDFRIEND_REQUEST;
 
@@ -154,6 +325,7 @@ void TCPLink::recieveData()
    {
 //       chatWindow *chat;
        friendVect.push_back(friendInfo);
+       databaseInsert(friendInfo);
        /** 将好友信息显示在主界面窗口上 */
 //       chat = new chatWindow;
 //       chat->show();
@@ -451,6 +623,114 @@ void TCPLink::messageRequest(Message &msg/* = message*/)
     message = msg;
     newConnect();
 }
+// 查询单个好友在线状态，并反馈至数据库中
+int TCPLink::confirmFriendOnline(QString &account)
+{
+    int friendNumber = findAccount(account);    // 好友在好友列表中的序号
+    if(-1 == friendNumber)
+    {
+        qDebug() << "尚未添加好友 " << account;
+        return -2;
+    }
+    else if(0 == friendNumber)
+    {
+        qDebug() << "用户" << account << "目前不支持多地同时登陆，不能与自己聊天";
+        return -2;
+    }
+    // friendNumber >= 1
+    if(!isConnected)
+    {
+        tcpClient->abort();
+        tcpClient->connectToHost(serverNode.hostAddr, serverNode.hostPort);
+    }
+    else
+    {
+        QString QueryInfo;
+        QueryInfo = "q" + account;
+        qDebug() << QueryInfo;
+        tcpClient->write(QueryInfo.toStdString().c_str());
+        disconnect(tcpClient, SIGNAL(readyRead()), this, SLOT(readResult()));   // 暂时 disconnect
+        if(tcpClient->waitForReadyRead(500))    // 等待数据可读，500ms超时
+        {
+            isConnected = true;
+            QSqlQuery qr;
+            QByteArray qba;
+            QString Reply;
+            qba = tcpClient->readAll();
+            Reply = QVariant(qba).toString();
+            qDebug() << Reply;
+            if(Reply == "n")
+            {
+                // 好友不在线
+                qr.prepare("update friends set status = :status where account = :account");
+                qr.bindValue(":account", account);
+                qr.bindValue(":status", OFFLINE);    // 在线状态 status
+                qr.exec();
+//                    query.exec();
+                qDebug() << "好友" << account << "离线";
+//                    replyKind = FRIEND_OFFLINE;
+//                    friendInfo.status = OFFLINE;
+                // 同时更新 friendVect[]
+                friendVect[friendNumber].node.hostAddr = "";    // 用户不在线，在线IP清零
+                friendVect[friendNumber].status = OFFLINE;
+                friendVect[friendNumber].isConnected = false;   // 不在线，未连接
+
+                return OFFLINE;
+
+            }
+            else if(ipRegExp.exactMatch(Reply))
+            {
+                qr.prepare("update friends set status = :status where account = :account");
+                qr.bindValue(":account", account);
+                qr.bindValue(":status", ONLINE);    // 在线状态 status
+                qr.exec();
+                qr.prepare("update friends set IP = :IP where account = :account");
+                qr.bindValue(":account", account);
+                qr.bindValue(":IP", Reply);    // IP地址 IP
+                qr.exec();
+//                    query.bindValue(4, Reply);  // IP
+//                    query.bindValue(5, ONLINE); // status
+//                    query.exec();
+//                tempfriend.node.hostAddr = Reply;
+//                tempfriend.status = ONLINE;
+                qDebug() << "好友" << account << "在线，IP地址: " << Reply;
+//                    replyKind = FRIEND_ONLINE;
+//                    friendInfo.status = ONLINE;
+//                    friendInfo.node.hostAddr = Reply;       // IP 地址为回复信息
+//                    friendInfo.node.hostPort = getPortNumber(friendInfo.account);   // 端口号为 账号后4位数字
+                // 同时更新 friendVect[]
+                friendVect[friendNumber].status = ONLINE;
+                if(friendVect[friendNumber].node.hostAddr != Reply) // IP 地址变化，需要重新创建连接
+                {
+                    friendVect[friendNumber].node.hostAddr = Reply;
+                    friendVect[friendNumber].isConnected = false;   // 不再处于连接状态，重新连接
+//                    return IPUPDATED;
+                }
+                return ONLINE;
+            }
+            else if(Reply == "")
+            {
+//                    replyKind = NO_REPLY;
+//                    friendInfo.status = OFFLINE;
+//                allReplyed = false;
+                return -1;
+            }
+            else
+            {
+//                    replyKind = FRIEND_NO_ACCOUNT;
+//                    friendInfo.status = OFFLINE;
+//                allReplyed = false;
+                return -1;
+            }
+
+        }
+
+        connect(tcpClient, SIGNAL(readyRead()), this, SLOT(readResult()));   // 恢复 disconnect
+
+    }
+    connect(tcpClient, SIGNAL(readyRead()), this, SLOT(readResult()));   // 恢复 disconnect
+}
+
 // 遍历所有好友请求
 bool TCPLink::travelsalRequest(void)
 {
@@ -488,6 +768,7 @@ bool TCPLink::travelsalRequest(void)
             tcpClient->write(QueryInfo.toStdString().c_str());
             if(tcpClient->waitForReadyRead(500))   // 等待数据可读 500ms超时
             {   // 有数据
+                isConnected = true;
                 QByteArray qba;
                 QString Reply;
                 qba = tcpClient->readAll();
@@ -546,45 +827,119 @@ bool TCPLink::travelsalRequest(void)
             {
                 allReplyed = false; // 只要有一个回复未收到或者超时即未完全回复
             }
-            if(tempfriend.account == loginInfo.account)    // 如果数据库中好友为本身
-            {
-                friendVect.push_front(tempfriend); // 在最前端的好友中加自己 friendVect[0] 默认为自己
-                selfincluded = true;
-    //            friendVect.insert(friendVect.begin(), tempfriend);    //
-            }
-            else
-            {
-                friendVect.push_back(tempfriend);  // 默认其他好友添加至最后
-            }
+//            if(tempfriend.account == loginInfo.account)    // 如果数据库中好友为本身
+//            {
+//                friendVect.push_front(tempfriend); // 在最前端的好友中加自己 friendVect[0] 默认为自己
+//                selfincluded = true;
+//    //            friendVect.insert(friendVect.begin(), tempfriend);    //
+//            }
+//            else
+//            {
+//                friendVect.push_back(tempfriend);  // 默认其他好友添加至最后
+//            }
         }
-        if(false == selfincluded)       // 数据库中未包含自身，另行添加
-        {
-            FriendInfo myself;
-            myself.account = loginInfo.account;
-            myself.name = loginInfo.nickname;
-            myself.avatar = loginInfo.avatar;
-            friendVect.push_front(myself); // 在最前端插入自己为好友
-            // 在数据库中做填补工作
-            query.prepare("INSERT INTO friends (ID, account, nickname, avatar, IP, status, block, group) VALUES (:ID, :account, :nickname, :avatar, :IP, :status, :block, :group)");
-            query.bindValue(":account", myself.account);
-            query.bindValue(":nickname", myself.name);
-            query.bindValue(":avatar", myself.avatar);
-            bool bsuccess = query.exec();
-            if(false == bsuccess)
-            {
-                QString queryError = query.lastError().text();
-                qDebug() << "插入个人信息不成功，错误代码：" << queryError;
-            }
-            else
-            {
-                qDebug() << "成功插入个人信息";
-            }
+//        if(false == selfincluded)       // 数据库中未包含自身，另行添加
+//        {
+//            FriendInfo myself;
+//            myself.account = loginInfo.account;
+//            myself.name = loginInfo.nickname;
+//            myself.avatar = loginInfo.avatar;
+//            friendVect.push_front(myself); // 在最前端插入自己为好友
+//            // 在数据库中做填补工作
+//            query.prepare("INSERT INTO friends (ID, account, nickname, avatar, IP, status, block, group) VALUES (:ID, :account, :nickname, :avatar, :IP, :status, :block, :group)");
+//            query.bindValue(":account", myself.account);
+//            query.bindValue(":nickname", myself.name);
+//            query.bindValue(":avatar", myself.avatar);
+//            bool bsuccess = query.exec();
+//            if(false == bsuccess)
+//            {
+//                QString queryError = query.lastError().text();
+//                qDebug() << "插入个人信息不成功，错误代码：" << queryError;
+//            }
+//            else
+//            {
+//                qDebug() << "成功插入个人信息";
+//            }
 
-        }
+//        }
 
     }
     return allReplyed;
 
+}
+// 将 friendVect[] 与数据库的信息同步
+void TCPLink::databasetoFriendVect()
+{
+    QSqlQuery query;    // 数据库查询
+    bool selfincluded;
+    selfincluded = false;
+    query.exec("select * from friends");    // 指定查找数据库中 friends 表
+
+    while(query.next()) // 遍历整张表
+    {
+        FriendInfo tempfriend;
+        // 0 ID
+        tempfriend.account = query.value(1).toString();     // 1 账号
+        tempfriend.name = query.value(2).toString();        // 2 昵称
+        tempfriend.avatar = query.value(3).toString();      // 3 头像路径，相对路径
+        tempfriend.node.hostAddr = query.value(4).toString();// 4 IP
+        tempfriend.status = query.value(5).toInt();      // 5 status
+        // 4 IP
+        // 5 status
+        tempfriend.block = query.value(6).toString();       // 6 所在分组
+        tempfriend.group = query.value(7).toString();       // 7 所在群
+
+        if(tempfriend.account == loginInfo.account)    // 如果数据库中好友为本身
+        {
+            friendVect.push_front(tempfriend); // 在最前端的好友中加自己 friendVect[0] 默认为自己
+            selfincluded = true;
+//            friendVect.insert(friendVect.begin(), tempfriend);    //
+        }
+        else
+        {
+            friendVect.push_back(tempfriend);  // 默认其他好友添加至最后
+        }
+    }
+    if(false == selfincluded)       // 数据库中未包含自身，另行添加
+    {
+        FriendInfo myself;
+        myself.account = loginInfo.account;
+        myself.name = loginInfo.nickname;
+        myself.avatar = loginInfo.avatar;
+        friendVect.push_front(myself); // 在最前端插入自己为好友
+        // 在数据库中做填补工作
+//        query.prepare("insert into friends (ID, account, nickname, avatar, IP, status, block, group) values (:ID, :account, :nickname, :avatar, :IP, :status, :block, :group)");
+        query.prepare("insert into friends (account, nickname, avatar) values (:account, :nickname, :avatar)");
+        query.bindValue(":account", myself.account);
+        query.bindValue(":nickname", myself.name);
+        query.bindValue(":avatar", myself.avatar);
+        bool bsuccess = query.exec();
+        if(false == bsuccess)
+        {
+            QString queryError = query.lastError().text();
+            qDebug() << "插入个人信息不成功，错误代码：" << queryError;
+        }
+        else
+        {
+            qDebug() << "成功插入个人信息";
+        }
+
+    }
+}
+// 向数据库中插入一个新的好友信息
+void TCPLink::databaseInsert(FriendInfo &frd)
+{
+    QSqlQuery qr;
+    // 插入一个新的好友，并更新相应的信息
+    qr.prepare("insert into friends (account, nickname, avatar, IP, status) values(:account, :nickname, :avatar, :IP, :status)");
+    qr.bindValue(":accout", frd.account);   // 账号
+    qr.bindValue(":nickname", frd.name);    // 昵称
+    qr.bindValue(":avatar", frd.avatar);    // 头像路径
+    qr.bindValue(":IP", frd.node.hostAddr);// IP
+    qr.bindValue(":status", frd.status);    // 状态 status
+//    qr.bindValue(":block", ); // block 分组
+//    qr.bindValue(":group", ); // group 群
+    qr.exec();
 }
 
 /// 与好友（服务器）通信，向好友发送请求
@@ -592,5 +947,17 @@ bool TCPLink::travelsalRequest(void)
 void TCPLink::addFriendRequest()
 {
     requestKind = ADD_FRIEND;
+    TCPLink::newTCPConnection();
+}
+// 好友聊天请求
+void TCPLink::startChatRequest()
+{
+    requestKind = START_CHAT;
+    TCPLink::newTCPConnection();
+}
+// 建立连接请求
+void TCPLink::connectRequest()
+{
+    requestKind = CONNECT;
     TCPLink::newTCPConnection();
 }

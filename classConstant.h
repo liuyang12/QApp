@@ -14,7 +14,8 @@
 enum STATUS{    // 状态
     OFFLINE = 0,    // 离线 = 0
     ONLINE = 1,     // 在线 = 1
-    TIMEOUT = 2     // 连接超时 = 2
+    TIMEOUT = 2,     // 连接超时 = 2
+    IPUPDATED = 3   // IP 地址变化
 };
 enum REQUEST{   // 请求
     LOGIN = 10,     // 登录 = 10
@@ -23,7 +24,9 @@ enum REQUEST{   // 请求
     MESSAGE = 13,   // 发送信息 = 13
     ADD_FRIEND = 14,  // 发送好友请求 = 14
     GET_FRIEND = 15,     // 好友请求
-    TRAVELSAL = 16      // 遍历查询所有好友状态
+    TRAVELSAL = 16,     // 遍历查询所有好友状态
+    CONNECT = 17,       // 发起连接
+    START_CHAT = 18     // 开始聊天请求
 };
 enum REPLY{     // 回复
     NO_REPLY = 99,          // 无回复
@@ -36,18 +39,27 @@ enum REPLY{     // 回复
     FRIEND_OFFLINE = 25,    // 好友未在线
     FRIEND_NO_ACCOUNT = 27, // 无此账号
     FRIEND_ONLINE = 26,     // 好友在线
-    // 添加好友恢复
+    // 添加好友回复
     ADDFRIEND_SUCCESS = 30, // 成功添加好友
     ADDFRIEND_DENY = 31,    // 好友拒绝
     HAVE_ADDED = 32,        // 已经是好友
     ADDFRIEND_REQUEST = 33, // 添加好友请求
+    // 好友聊天回复
+    STARTCHAT_SUCCESS = 35, // 成功开始聊天
+    STARTCHAT_DENY = 36,    // 好友拒绝聊天请求
+    ISCHATING = 37,         // 正在聊天，聊天窗口未关闭
+    STARTCHAT_REQUEST = 38, // 开始聊天请求
+    // 好友连接回复
+    CONNECT_SUCCESS = 40,   // 连接成功
+    CONNECT_FAILED = 41,    // 连接失败
+    CONNECT_REQUEST = 43,   // 好友连接请求
     // 登出回复
-    LOGOUT_SUCCESS = 40,    // 登出成功
-    LOGOUT_FAILED = 41,      // 登出失败
+    LOGOUT_SUCCESS = 50,    // 登出成功
+    LOGOUT_FAILED = 51,      // 登出失败
     // 会话消息回复
-    NO_MESSAGE = 50,        // 无消息
-    NAVE_MESSAGE = 51,      // 有消息
-    HAVE_TALK_MESSAGE = 52  // 有会消息
+    NO_MESSAGE = 60,        // 无消息
+    NAVE_MESSAGE = 61,      // 有消息
+    HAVE_TALK_MESSAGE = 62  // 有会消息
 
 };
 

@@ -13,9 +13,13 @@ class chatWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit chatWindow(QWidget *parent = 0);
+    explicit chatWindow(QVector<int> frNo, QWidget *parent = 0);
     ~chatWindow();
-    void initSocket(void );
+    QString HeadString;     // 窗口标题
+    QVector<int> friendNo;  // 聊天窗口中的所有好友的编号，通过这个与 friendVect[] 获取好友的TCPSocket 进而进行聊天，默认其中包含自己，但是不显式表示出来 friendNo[0] 是第一个好友的编号，而不是自己
+    void initWindowHead(void );     // 设置窗口标题和头像
+    void initSocket(void );     // 初始化 TCPSocket 通信
+    bool operator ==(const chatWindow &chat);   // 重载等号运算符，如果两个窗口 friendNo 一致（不考虑序号）则两个窗口是同一个窗口
 
 private:
     Ui::chatWindow *ui;
@@ -43,7 +47,7 @@ private slots:
     void sendMessage(void);     // 发送好友消息
     void readMessage(void);     // 读取好友消息
     void displaySocketError(QAbstractSocket::SocketError);  // 显示 Socket 错误信息
-    void appendShowLine(void/*Message &message*/);  // 更新显示窗口
+    void appendShowLine(QString &account);  // 更新显示窗口
     void on_openFileButton_clicked();
     void on_sendFileButton_clicked();
     void on_sendMsgButton_clicked();
@@ -52,5 +56,9 @@ private slots:
 signals:
     void connectionFailedSignal();
 };
+#ifndef FRIENDNOEQUAL
+#define FRIENDNOEQUAL
+inline bool friendNoEqual(QVector<int> friendNo_a, QVector<int> friendNo_b);
+#endif
 
 #endif // CHATWINDOW_H

@@ -214,7 +214,7 @@ void login::newReply(qint32 replyKind)
         loginInfo.status = ONLINE;
         qDebug() << "用户" << loginInfo.account << "登录成功";
 //        QTextCodec::setCodecForTr( QTextCodec::codecForName("GBK") );
-        QMessageBox::information(this, tr("info"), tr("用户登录成功"), QMessageBox::Yes);
+//        QMessageBox::information(this, tr("info"), tr("用户登录成功"), QMessageBox::Yes);
         emit loggedinSignal();
         // 调用主界面
         qapp = new QAppWindow(/*tcplink, */NULL);

@@ -2,14 +2,18 @@
 #include "ui_chatwindow.h"
 #include <QDateTime>
 #include "tcplink.h"
+#include <algorithm>
 
 extern TCPLink *tcplink;           // tcplink 全局变量
 
-chatWindow::chatWindow(QWidget *parent) :
+chatWindow::chatWindow(QVector<int> frNo, QWidget *parent):
     QDialog(parent),
+    friendNo(frNo),     // 传递参与聊天的所有好友的序号列表
     ui(new Ui::chatWindow)
 {
     ui->setupUi(this);
+    //
+//    this->setWindowTitle();
     tcpClient = new QTcpSocket(this);
     FileConnect = false;
     //建立发送文件的Socket
@@ -28,6 +32,10 @@ chatWindow::chatWindow(QWidget *parent) :
     blockSize = 0;
     ui->Show_message->setReadOnly(true);    // 消息显示窗口只读
     ui->Edit_message->installEventFilter(this);
+
+    // 窗口的初始化
+    this->initSocket();     // TCPSocket 通信初始化
+    this->initWindowHead(); // 窗口标题和头像初始化
 }
 
 chatWindow::~chatWindow()
@@ -50,12 +58,59 @@ bool chatWindow::eventFilter(QObject *obj, QEvent *ev)
     }
     return false;
 }
+bool friendNoEqual(QVector<int> friendNo_a, QVector<int> friendNo_b)
+{
+    if(friendNo_a.size() != friendNo_b.size())
+        return false;   // 个数不相等则为不等
+    std::sort(friendNo_a.begin(), friendNo_a.end());    // 分别对两个 vector 进行排序
+    std::sort(friendNo_b.begin(), friendNo_b.end());
+    return (friendNo_a == friendNo_b);  // 重新排序后比较大小
+}
 
+// 重载等号，如果两个窗口 friendNo 一致（不考虑序号），则两个窗口相等
+bool chatWindow::operator ==(const chatWindow &chat)
+{
+    return (friendNoEqual(friendNo, chat.friendNo));
+}
+
+// 初始化 TCPSocket 通信
 void chatWindow::initSocket()
 {
-//    connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendMessage()));
-    connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(readMessage()));      // 读取好友消息
-    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displaySocketError(QAbstractSocket::SocketError)));   // 显示错误信息
+    FriendInfo tmpfriend;   // 临时转存
+    tmpfriend = tcplink->friendInfo;    // 首先保存临时好友信息
+    HeadString = "";
+    qDebug() << friendNo;
+    for(int i = 0; i < friendNo.size(); i++)
+    {   HeadString = HeadString + tcplink->friendVect[friendNo[i]].account + " ";
+        // 每次打开聊天窗口确定所有好友的在线状态
+        if(ONLINE == tcplink->confirmFriendOnline(tcplink->friendVect[friendNo[i]].account) || IPUPDATED == tcplink->confirmFriendOnline(tcplink->friendVect[friendNo[i]].account))  // 在线
+        {
+            if(!tcplink->friendVect[friendNo[i]].isConnected)   // 如果还未连接则进行连接
+            {
+                tcplink->friendInfo = tcplink->friendVect[friendNo[i]];
+                tcplink->connectRequest();
+            }
+//            tcplink->requestKind = CONNECT;
+//            tcplink->newTCPConnection();    // 获取新的 TCPSocket 用于通信
+            // 每次使用 tcpSocket 需要确保其在线
+            // 连接所有在线好友的 TCPSocket
+            connect(tcplink->friendVect[friendNo[i]].tcpSocket, SIGNAL(readyRead()), this, SLOT(readMessage()));        // 只要有可读消息，则读取所有好友的消息
+            connect(tcplink->friendVect[friendNo[i]].tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displaySocketError(QAbstractSocket::SocketError)));
+        }
+    }
+    tcplink->friendInfo = tmpfriend;    // 恢复临时好友信息
+
+////    connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendMessage()));
+//    connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(readMessage()));      // 读取好友消息
+//    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displaySocketError(QAbstractSocket::SocketError)));   // 显示错误信息
+}
+// 设置窗口标题和头像
+void chatWindow::initWindowHead()
+{
+    // 设置窗口标题
+    this->setWindowTitle(HeadString);
+    // 设置窗口头像
+    // TODO
 }
 
 void chatWindow::GetFriendInfo(FriendInfo info)
@@ -63,7 +118,7 @@ void chatWindow::GetFriendInfo(FriendInfo info)
     friendInfo = info;
     tcplink->disconnectfriendSocket();
     friendInfo.tcpSocket = info.tcpSocket;
-    initSocket();
+//    initSocket();
 }
 
 //打开文件
@@ -171,40 +226,54 @@ void chatWindow::sendMessage()
     out << sendString;        // 发送消息
     out.device()->seek(0);  // 回到首部
     out << (qint16)(block.size() - sizeof(qint16));
-    friendInfo.tcpSocket->write(block); // 发送数据
+    for(int i = 0; i < friendNo.size(); i++)    // 向所有在线好友发送窗口数据
+    {
+        // 每次使用 tcpSocket 需要确保在线
+        if(ONLINE == tcplink->friendVect[friendNo[i]].status)
+            tcplink->friendVect[friendNo[i]].tcpSocket->write(block);
+    }
+//    friendInfo.tcpSocket->write(block); // 发送数据
 }
 // 更新显示窗口
-void chatWindow::appendShowLine()
+void chatWindow::appendShowLine(QString &account)
 {
     // 将接收到的信息显示在输出框
     QString datetime = getCurrentDateTime();
     /// todo 最前面加好友昵称
-    QString temp = QString("<font size=\"3\" color=blue>(<font color=dodgerblue><u>%1</u></font>) %2</font>%3").arg(friendInfo.account).arg(datetime).arg(recieveString);
+    QString temp = QString("<font size=\"3\" color=blue>%1  (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[tcplink->findAccount(account)].name).arg(account).arg(datetime).arg(recieveString);
     ui->Show_message->append(temp); // 显示在输出框
 }
 
 // ，准备接收，接收消息
 void chatWindow::readMessage()
 {
-    QDataStream in(friendInfo.tcpSocket);
-    in.setVersion(QDataStream::Qt_5_3);
-    if(blockSize == 0)
+    for(int i = 0; i < friendNo.size(); i++)
     {
-        if(friendInfo.tcpSocket->bytesAvailable() < (int)sizeof(qint16))
+        if(ONLINE == tcplink->friendVect[friendNo[i]].status)
         {
-            return ;
+            // 注意对于没有发送消息的好友的处理
+//            if(tcplink->friendVect[friendNo[i]].tcpSocket->bytesAvailable())
+            QDataStream in(tcplink->friendVect[friendNo[i]].tcpSocket);
+            in.setVersion(QDataStream::Qt_5_3);
+            if(blockSize == 0)
+            {
+                if(tcplink->friendVect[friendNo[i]].tcpSocket->bytesAvailable() < (int)sizeof(qint16))  // 自动对没有消息的好友进行了处理，直接返回，没有任何操作
+                {
+                    continue ;  // 此处是不是应该记录每个消息的归属
+                }
+                in >> blockSize;
+            }
+            if(tcplink->friendVect[friendNo[i]].tcpSocket->bytesAvailable() < blockSize)
+                return ;
+            in >> recieveString;
+            if (recieveString == "")
+                return ;
+            qDebug() << recieveString;
+            blockSize = 0;  // 重新归零
+            // 将接收到的消息显示在输出框
+            chatWindow::appendShowLine(tcplink->friendVect[friendNo[i]].account);
         }
-        in >> blockSize;
     }
-    if(friendInfo.tcpSocket->bytesAvailable() < blockSize)
-        return ;
-    in >> recieveString;
-    if (recieveString == "")
-        return ;
-    qDebug() << recieveString;
-    blockSize = 0;  // 重新归零
-    // 将接收到的消息显示在输出框
-    chatWindow::appendShowLine();
 }
 
 
@@ -259,7 +328,7 @@ void chatWindow::on_sendMsgButton_clicked()
     ui->Edit_message->clear();  // 输入框清空
     QString datetime = getCurrentDateTime();
     /// todo 最前面加自己的昵称
-    sendString = QString("<font size=\"3\" color=green>(<font color=dodgerblue><u>%1</u></font>) %2</font>%3").arg(tcplink->loginInfo.account).arg(datetime).arg(tmpString);   // 转为 HTML 账号-时间-消息
+    sendString = QString("<font size=\"3\" color=green>%1  (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[0].name).arg(tcplink->loginInfo.account).arg(datetime).arg(tmpString);   // 转为 HTML 账号-时间-消息
     ui->Show_message->append(sendString);   // 显示在输入窗口
     // 发送消息
     QByteArray block;
@@ -270,7 +339,13 @@ void chatWindow::on_sendMsgButton_clicked()
     out << tmpString;        // 发送消息
     out.device()->seek(0);  // 回到首部
     out << (qint16)(block.size() - sizeof(qint16));
-    friendInfo.tcpSocket->write(block); // 发送数据
+    for(int i = 0; i < friendNo.size(); i++)
+    {
+        // 每次访问 tcpSocket 确保用户在线并 Socket 已经创建
+        if(ONLINE == (tcplink->friendVect[friendNo[i]].status))
+            tcplink->friendVect[friendNo[i]].tcpSocket->write(block);       // 向每个在线好友发送消息
+    }
+//    friendInfo.tcpSocket->write(block); // 发送数据
     qDebug() << tmpString;
 
 }

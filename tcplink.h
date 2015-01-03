@@ -16,6 +16,7 @@ public:
     ~TCPLink();
 
     void initasServer(void);    // 作为服务器初始化
+    void newTCPConnection();    // 与好友（服务器）建立新连接
 
     bool isConnected;       // 与服务器是否已连接上
 
@@ -28,6 +29,7 @@ public:
     UserInfo userInfo;      // 用户信息
     LoginInfo loginInfo;    // 登录信息
     FriendInfo friendInfo;  //好友信息，待加为好友
+    QTcpSocket *tmpSocket;  // 临时的 TCPSocket，作为服务器确定发送方是否已经添加为好友的依据
     FriendInfo travelsalFriend;   // 遍历账号好友
     Message message;        // 会话消息
     QVector<Message> messageVect;   // 消息向量
@@ -52,15 +54,21 @@ public:
     void logoutRequest(UserInfo &user/* = userInfo*/);       // 登出请求
     void messageRequest(Message &msg/* = message*/);        // 会话消息请求
     bool travelsalRequest(void);        // 遍历所有好友在线状态，同时获取相应的 IP 地址
+    int confirmFriendOnline(QString &account); // 查询单个好友的在线状态，并反馈至数据库中
+    void databasetoFriendVect(void);        // 将 friendVect[] 与数据库中的信息同步
+    void databaseInsert(FriendInfo &frd);      // 向数据库中插入一个新的好友
     // 用户请求 - 与好友（服务器）
     void addFriendRequest(void);        // 添加好友请求
+    void startChatRequest(void);        // 开始聊天请求
+    void connectRequest(void);          // 建立连接请求
 
     void disconnectfriendSocket(void);      // 切断之前的信号槽连接
+
+    int findAccount(QString &account);      // 在 friendVect[] 中查找相应的账号，如果存在则已经是好友，返回序号，如果不存在则还不是好友返回 -1
 
 private:
     void newConnect();          // 建立新的TCP连接
 
-    void newTCPConnection();    // 与好友（服务器）建立新连接
 signals:
     void newReplySignal(qint32 replyKind);  // 新建请求信号
     void travelsalReplySignal(qint32 replyKind); // 遍历好友恢复信号

@@ -8,6 +8,8 @@
 //#include "tcplink.h"
 #include "classConstant.h"
 
+#include "chatwindow.h" // 包含所有聊天窗口，并对所有聊天窗口进行管理
+
 namespace Ui {
 class QAppWindow;
 }
@@ -25,6 +27,7 @@ public:
 
     bool flag;
     void fetchDatabase(void);           // 从数据库拉取数据，更新 friendVect[]
+    int findChatWindow(const QVector<int> friendNo);  // 查找所有的聊天窗口，如果找到相一致的聊天窗口返回相应的窗口序号，否则返回 -1 （注意：friendNo 不一定是好友编号的序号不一定一致）
 
 private slots:
     void newReply(qint32 replyKind);    // 收到新的回复信息
@@ -72,6 +75,9 @@ private slots:
 
 private:
     Ui::QAppWindow *ui;
+
+    QVector<chatWindow *> chatVect;   // 包含所有的聊天窗口
+//    void newchat();
 
     QTcpServer *tcpServer;      // TCP Server
     QTcpSocket *tcpClient;      // TCP Socket

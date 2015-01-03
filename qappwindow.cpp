@@ -78,6 +78,7 @@ QAppWindow::QAppWindow(QWidget *parent) :
            break;
         }
     }
+    tcplink->databasetoFriendVect();
     for(int i = 0; i < tcplink->friendVect.size(); i++)
     {
         qDebug() << tcplink->friendVect[i];
@@ -226,6 +227,16 @@ void QAppWindow::travelsalReply(qint32 replyKind)
         break;
     }
 }
+// 查找所有的聊天窗口，如果找到相一致的聊天窗口返回相应的窗口序号，否则返回 -1 （注意：friendNo 不一定是好友编号的序号不一定一致）
+int QAppWindow::findChatWindow(QVector<int> friendNo)
+{
+    for(int i = 0; i < chatVect.size(); i++)
+    {
+        if(friendNoEqual(chatVect[i]->friendNo, friendNo))
+            return i;
+    }
+    return -1;  // 没有该窗口
+}
 
 //拖动窗口
 void QAppWindow::mousePressEvent(QMouseEvent *event)
@@ -271,37 +282,78 @@ void QAppWindow::newReply(qint32 replyKind)
 {
     QMessageBox friendMsgBox;
     chatWindow *chat;
+    int friendNumber;
+    QVector<int> friendNo;
+    int chatNumber;
 
     switch (replyKind) {
     /** 查找好友结果 */
     case FRIEND_ONLINE:
         qDebug() << "已找到用户" << tcplink->friendInfo.account << "IP地址: " << tcplink->friendInfo.node.hostAddr;
 //        tcplink->friendVect.
+        // 还不是好友，请求加为好友
+        if(-1 == tcplink->findAccount(tcplink->friendInfo.account))
+        {
+            switch(friendMsgBox.question( this, "查找好友",
+                                          "好友在线\n"
+                                          "现在加为好友~",
+                                          "加为好友(&A)", "取消(&C)",
+                                          0     /* Enter == button 0*/
+                                          ))
+            { // Escape == button 1
+            case 0: // “加为好友”或者 ALT + S 按下被
+                // 发出加为好友的请求
+                friendMsgBox.setWindowTitle("loading。。。");
+                friendMsgBox.setText("正在发出好友请求\n"
+                                     "等待加为好友。。。");
+                tcplink->addFriendRequest();
+                //tcplink->friendInfo.tcpSocket = tcpSender;
 
-        switch(friendMsgBox.question( this, "查找好友",
-                                      "好友在线\n"
-                                      "现在加为好友~",
-                                      "加为好友(&A)", "取消(&C)",
-                                      0     /* Enter == button 0*/
-                                      ))
-        { // Escape == button 1
-        case 0: // “加为好友”或者 ALT + S 按下被
-            // 发出加为好友的请求
-            friendMsgBox.setWindowTitle("loading。。。");
-            friendMsgBox.setText("正在发出好友请求\n"
-                                 "等待加为好友。。。");
-            tcplink->addFriendRequest();
-            //tcplink->friendInfo.tcpSocket = tcpSender;
+    //            chat = new chatWindow;
+    //            chat->show();
+                friendMsgBox.close();
 
-//            chat = new chatWindow;
-//            chat->show();
-            friendMsgBox.close();
-
-            break;
-        case 1: // Cancel被点击或者Alt+C被按下或者Escape被按下。
-            // 不退出
-            break;
+                break;
+            case 1: // Cancel被点击或者Alt+C被按下或者Escape被按下。
+                // 不退出
+                break;
+            }
         }
+        // 向服务器查找自身的 IP 地址
+        else if(0 == tcplink->findAccount(tcplink->friendInfo.account))
+        {
+            QMessageBox::information(this, "笨笨哒", "你还不知道自己的IP吗~\n哈哈，我来告诉你吧："+tcplink->friendInfo.node.hostAddr+"\n记好咯~");
+        }
+        else    // 已经是好友了
+        {
+            switch(friendMsgBox.question( this, "你的好友",
+                                          "好友在线\n"
+                                          "现在开始聊天~",
+                                          "开始聊天(&S)", "取消(&C)",
+                                          0     /* Enter == button 0*/
+                                          ))
+            { // Escape == button 1
+            case 0: // “开始聊天”或者 ALT + S 按下被
+                // 发出开始聊天的请求
+                friendMsgBox.setWindowTitle("loading。。。");
+                friendMsgBox.setText("正在发出好友聊天请求\n"
+                                     "等待好友确认聊天。。。");
+//                tcplink->addFriendRequest();
+                tcplink->startChatRequest();
+                //tcplink->friendInfo.tcpSocket = tcpSender;
+
+    //            chat = new chatWindow;
+    //            chat->show();
+                friendMsgBox.close();
+
+                break;
+            case 1: // Cancel被点击或者Alt+C被按下或者Escape被按下。
+                // 不退出
+                break;
+            }
+        }
+
+
         break;
     case FRIEND_OFFLINE:
         qDebug() << "用户" << tcplink->friendInfo.account << "离线";
@@ -327,16 +379,37 @@ void QAppWindow::newReply(qint32 replyKind)
         qDebug() << "用户" << tcplink->loginInfo.account << "离线状态";
         QMessageBox::information(this, tr("info"), tr("离线状态"), QMessageBox::Ok);
         break;
+    /** 好友连接请求 */
+    case CONNECT_REQUEST:
+
+        break;
+    case CONNECT_SUCCESS:
+
+        break;
+
     /** 好友请求 */
     case ADDFRIEND_REQUEST:
         switch (QMessageBox::information(this,tr("好友请求"), tr("用户")+tcplink->friendInfo.account+tr("请求加为好友？\n是否加为好友"), "加为好友(&A)", "取消(&C)", 0)) {
         case 0:  // 加为好友 - 默认
             tcplink->friendInfo.tcpSocket->write(tr("ADD").toStdString().c_str());       // 发送接收好友请求
-            tcplink->friendVect.push_back(tcplink->friendInfo);  // 添加好友
+            if(-1 == tcplink->findAccount(tcplink->friendInfo.account))
+            {
+                tcplink->friendVect.push_back(tcplink->friendInfo);  // 添加好友
+                tcplink->databaseInsert(tcplink->friendInfo);   // 同时更新好友数据库
+            }
  //           friendInfo = new
             /** 显示在主界面窗口上 */
-            chat = new chatWindow;       // 成功添加好友，打开聊天窗口
-            chat->setWindowTitle(tcplink->friendInfo.account);
+            friendNumber = tcplink->findAccount(tcplink->friendInfo.account);
+            friendNo.clear();
+            friendNo.push_back(friendNumber);
+            tcplink->friendVect[friendNumber].tcpSocket = tcplink->friendInfo.tcpSocket;
+            tcplink->friendVect[friendNumber].isConnected = tcplink->friendInfo.isConnected;
+            tcplink->friendVect[friendNumber].node.hostAddr = tcplink->friendInfo.node.hostAddr;
+
+            chat = new chatWindow(friendNo);       // 成功添加好友，打开聊天窗口
+            // 设置单人聊天窗口为相应的头像和账号，可在 chatWindow 中实现
+            // TODO：头像
+            chat->setWindowTitle(tcplink->friendInfo.account);   // 账号
             connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
             chat->show();
             emit this->FriendInfoSignal(tcplink->friendInfo);
@@ -351,14 +424,101 @@ void QAppWindow::newReply(qint32 replyKind)
         }
         break;
     case ADDFRIEND_SUCCESS: // 成功添加好友
-        chat = new chatWindow;
+//        tcplink->friendVect.push_back(tcplink->friendInfo);
+//        tcplink->databaseInsert(tcplink->friendInfo);
+        if(-1 == tcplink->findAccount(tcplink->friendInfo.account))
+        {
+            tcplink->friendVect.push_back(tcplink->friendInfo);  // 添加好友
+            tcplink->databaseInsert(tcplink->friendInfo);   // 同时更新好友数据库
+        }
+//           friendInfo = new
+        /** 显示在主界面窗口上 */
+        friendNumber = tcplink->findAccount(tcplink->friendInfo.account);
+        friendNo.clear();
+        friendNo.push_back(friendNumber);
+        tcplink->friendVect[friendNumber].tcpSocket = tcplink->friendInfo.tcpSocket;
+        tcplink->friendVect[friendNumber].isConnected = tcplink->friendInfo.isConnected;
+        tcplink->friendVect[friendNumber].node.hostAddr = tcplink->friendInfo.node.hostAddr;
+
+        chat =new chatWindow(friendNo);
         chat->setWindowTitle(tcplink->friendInfo.account);
         connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
         chat->show();
         emit this->FriendInfoSignal(tcplink->friendInfo);
         break;
     case ADDFRIEND_DENY:    // 好友拒绝添加好友请求
+        qDebug() << "用户" << tcplink->friendInfo.account << "拒绝添加好友请求TAT";
+        break;
 
+    /** 聊天请求 */
+    case STARTCHAT_REQUEST:
+        switch (QMessageBox::information(this,tr("好友请求"), tr("好友")+tcplink->friendInfo.account+tr("发起聊天？\n是否接受聊天请求"), "开始聊天(&A)", "取消(&C)", 0)) {
+        case 0:  // 加为好友 - 默认
+            tcplink->friendInfo.tcpSocket->write(tr("start_chat").toStdString().c_str());       // 发送接收好友请求
+            qDebug() << "start_chat";
+//            tcplink->friendVect.push_back(tcplink->friendInfo);  // 添加好友
+//            tcplink->databaseInsert(tcplink->friendInfo);   // 同时更新好友数据库
+ //           friendInfo = new
+            /** 显示在主界面窗口上 */
+            friendNo.clear();
+            friendNo.push_back(tcplink->findAccount(tcplink->friendInfo.account));
+            chatNumber = findChatWindow(friendNo);
+            if(-1 == chatNumber)    // 没有该窗口
+            {
+                chat = new chatWindow(friendNo);       // 成功添加好友，打开聊天窗口
+                // 设置单人聊天窗口为相应的头像和账号，可在 chatWindow 中实现
+                // TODO：头像
+                chat->setWindowTitle(tcplink->friendInfo.account);   // 账号
+                connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
+                chat->show();
+                emit this->FriendInfoSignal(tcplink->friendInfo);
+                chatVect.push_back(chat);
+    //            replyKind = ADDFRIEND_SUCCESS;   // 成功添加好友
+            }
+            else
+            {
+                chatVect[chatNumber]->initSocket();  // 重新检查在线状态
+                chatVect[chatNumber]->show();    // 有的话直接打开该窗口继续聊天
+            }
+
+
+            break;
+        case 1:
+            tcplink->friendInfo.tcpSocket->write(tr("cancel_chat").toStdString().c_str());    // 发送取消好友请求
+ //           replyKind = ADDFRIEND_DENY;      // 好友拒绝
+            break;
+        default:
+            break;
+        }
+        break;
+    case STARTCHAT_SUCCESS: // 成功发起聊天
+//        tcplink->friendVect.push_back(tcplink->friendInfo);
+//        tcplink->databaseInsert(tcplink->friendInfo);
+        /** 显示在主界面窗口上 */
+        friendNo.clear();
+        friendNo.push_back(tcplink->findAccount(tcplink->friendInfo.account));
+        chatNumber = findChatWindow(friendNo);
+        if(-1 == chatNumber)    // 没有该窗口
+        {
+            chat = new chatWindow(friendNo);       // 成功添加好友，打开聊天窗口
+            // 设置单人聊天窗口为相应的头像和账号，可在 chatWindow 中实现
+            // TODO：头像
+            chat->setWindowTitle(tcplink->friendInfo.account);   // 账号
+            connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
+            chat->show();
+            emit this->FriendInfoSignal(tcplink->friendInfo);
+            chatVect.push_back(chat);
+//            replyKind = ADDFRIEND_SUCCESS;   // 成功添加好友
+        }
+        else
+        {
+            chatVect[chatNumber]->initSocket();  // 重新检查在线状态
+            chatVect[chatNumber]->show();    // 有的话直接打开该窗口继续聊天
+        }
+        tcplink->replyKind = 0;
+        break;
+    case STARTCHAT_DENY:    // 好友拒绝聊天请求
+        qDebug() << "好友" << tcplink->friendInfo.account << "拒绝聊天请求TAT\n还能不能一起愉快的玩耍了";
         break;
     default:
         break;
@@ -412,7 +572,8 @@ void QAppWindow::FileReceive()
         {
             FileConnect = true;
             char *FileMessage = "ACCEPT";
-            switch (QMessageBox::information(this,tr("文件传送请求"), tr("用户")+tcplink->friendInfo.account+tr("向您传送文件？\n是否接收"), "接收(&A)", "拒绝(&C)", 0))
+//            tcpClient->peerAddress().toString();并相应的查找 friendVect[] 中的相关信息
+            switch (QMessageBox::information(this,tr("文件传送请求"), tr("用户")+tcplink->friendInfo.account+tr("向您传送文件？\n是否接收"), "接收(&A)", "拒绝(&C)", 0))   // TODO：找到谁发送的文件，而不一定是 tcplink->friendInfo.account 通过 tcpClient的IP地址
             {
             case 0:
                 tcpClient->write(FileMessage);
