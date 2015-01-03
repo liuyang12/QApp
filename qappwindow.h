@@ -24,6 +24,8 @@ public:
 
     void newTCPConnect(void);           // 建立与服务器之间的连接
     QPoint dragPosition;//拖动窗口
+    QTreeWidgetItem* curItem;
+
 
     bool flag;
     void fetchDatabase(void);           // 从数据库拉取数据，更新 friendVect[]
@@ -72,6 +74,22 @@ private slots:
 //    void on_label_linkActivated(const QString &link);
 
     void on_addfriend_clicked();
+//    void on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
+
+    void showSelectedImage(QTreeWidgetItem * item, int column); //点击树节点事件
+
+    //右键菜单删除
+    void on_treeWidget_customContextMenuRequested(const QPoint &pos);
+
+    void onDeleGroup();
+
+    void onDeleFriend();
+
+
+//    void on_treeWidget_clicked(const QModelIndex &index);
+
+//    void ItemClicked(QTreeWidgetItem *item, int column);
+    void refresh();
 
 private:
     Ui::QAppWindow *ui;

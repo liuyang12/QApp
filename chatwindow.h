@@ -15,6 +15,7 @@ class chatWindow : public QDialog
 public:
     explicit chatWindow(QVector<int> frNo, QWidget *parent = 0);
     ~chatWindow();
+    QPoint dragPosition;
     QString HeadString;     // 窗口标题
     QVector<int> friendNo;  // 聊天窗口中的所有好友的编号，通过这个与 friendVect[] 获取好友的TCPSocket 进而进行聊天，默认其中包含自己，但是不显式表示出来 friendNo[0] 是第一个好友的编号，而不是自己
     void initWindowHead(void );     // 设置窗口标题和头像
@@ -39,6 +40,8 @@ protected:
 
 public slots:
     void GetFriendInfo(FriendInfo); //获取好友信息
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
 
 private slots:
     void StartTransmit();
@@ -51,6 +54,8 @@ private slots:
     void on_openFileButton_clicked();
     void on_sendFileButton_clicked();
     void on_sendMsgButton_clicked();
+    void on_closebutton_clicked();
+    void on_minButton_clicked();
 //    void on_comboBox_activated(int index);
 
 signals:

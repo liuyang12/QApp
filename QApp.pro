@@ -16,20 +16,25 @@ SOURCES += main.cpp\
 	login.cpp \
     tcplink.cpp \
     qappwindow.cpp \
-    chatwindow.cpp
+    chatwindow.cpp \
+    friendinfo.cpp
 
 HEADERS  += \
 	login.h \
     classConstant.h \
     tcplink.h \
     qappwindow.h \
-    chatwindow.h
+    chatwindow.h \
+    friendinfo.h
 
 FORMS    += \
     login.ui \
     qappwindow.ui \
-    chatwindow.ui
+    chatwindow.ui \
+    friendinfo.ui
 
 RESOURCES += \
     picture.qrc \
-    mainpicture.qrc
+    mainpicture.qrc \
+    chatwindow.qrc \
+    friendinfo.qrc

@@ -94,15 +94,18 @@ border-image: url(:/picture/kb.png);</string>
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>210</y>
-      <width>261</width>
-      <height>341</height>
+      <y>200</y>
+      <width>271</width>
+      <height>351</height>
      </rect>
     </property>
     <property name="font">
      <font>
       <pointsize>12</pointsize>
      </font>
+    </property>
+    <property name="contextMenuPolicy">
+     <enum>Qt::CustomContextMenu</enum>
     </property>
     <property name="styleSheet">
      <string notr="true">
@@ -140,7 +143,7 @@ border-image: url(:/picture/white.jpg);</string>
     </property>
     <property name="styleSheet">
      <string notr="true">background-image: url(:/picture/kb.png);
-background-color: qlineargradient(spread:pad, x1:0.555682, y1:0.222, x2:0.55, y2:1, stop:0.482955 rgba(213, 0, 10, 232), stop:1 rgba(213, 0, 10, 82));
+background-color: rgb(75, 162, 255);
 color: rgb(255, 255, 255);
 border-image: url(:/picture/kb.png);</string>
     </property>
@@ -186,19 +189,6 @@ border-image: url(:/picture/kb.png);</string>
      <string>It' S um</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="searchfriend">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>130</y>
-      <width>281</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="clearButtonEnabled">
-     <bool>false</bool>
-    </property>
-   </widget>
    <widget class="QPushButton" name="addfriend">
     <property name="geometry">
      <rect>
@@ -239,7 +229,7 @@ border-image: url(:/mainpicture/addfriend_normal.png);</string>
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>170</y>
+      <y>140</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -259,7 +249,7 @@ border-image: url(:/mainpicture/chat_normal.png);</string>
     <property name="geometry">
      <rect>
       <x>120</x>
-      <y>170</y>
+      <y>140</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -279,7 +269,7 @@ border-image: url(:/mainpicture/qunchat_normal.png);</string>
     <property name="geometry">
      <rect>
       <x>220</x>
-      <y>170</y>
+      <y>140</y>
       <width>31</width>
       <height>31</height>
      </rect>
@@ -303,7 +293,6 @@ border-image: url(:/mainpicture/addchat_normal.png);</string>
    <zorder>Edit_FriendAccount</zorder>
    <zorder>treeWidget</zorder>
    <zorder>Button_queryFriend</zorder>
-   <zorder>searchfriend</zorder>
    <zorder>addfriend</zorder>
    <zorder>chat</zorder>
    <zorder>qunchat</zorder>

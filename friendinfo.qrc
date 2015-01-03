@@ -1,0 +1,22 @@
+<RCC>
+    <qresource prefix="/">
+        <file>friendinfo/tx1.jpg</file>
+        <file>friendinfo/tx2.jpg</file>
+        <file>friendinfo/tx3.jpg</file>
+        <file>friendinfo/tx4.jpg</file>
+        <file>friendinfo/tx5.jpg</file>
+        <file>friendinfo/tx6.jpg</file>
+        <file>friendinfo/tx7.jpg</file>
+        <file>friendinfo/tx8.jpg</file>
+        <file>friendinfo/tx9.jpg</file>
+        <file>friendinfo/tx10.jpg</file>
+        <file>friendinfo/kb.png</file>
+        <file>friendinfo/white.jpg</file>
+        <file>friendinfo/tx.jpg</file>
+        <file>friendinfo/tx0.jpg</file>
+        <file>friendinfo/bule.jpg</file>
+        <file>friendinfo/success.png</file>
+        <file>friendinfo/deepbule.jpg</file>
+        <file>friendinfo/lessbule.jpg</file>
+    </qresource>
+</RCC>

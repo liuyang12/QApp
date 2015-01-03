@@ -15,5 +15,9 @@
         <file>mainpicture/tx2.jpg</file>
         <file>mainpicture/kb.png</file>
         <file>mainpicture/white.jpg</file>
+        <file>mainpicture/tx3.jpg</file>
+        <file>mainpicture/tx4.jpg</file>
+        <file>mainpicture/_tx.jpg</file>
+        <file>mainpicture/_tx0.jpg</file>
     </qresource>
 </RCC>

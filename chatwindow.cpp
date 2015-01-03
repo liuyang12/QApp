@@ -36,12 +36,43 @@ chatWindow::chatWindow(QVector<int> frNo, QWidget *parent):
     // 窗口的初始化
     this->initSocket();     // TCPSocket 通信初始化
     this->initWindowHead(); // 窗口标题和头像初始化
+    this->setWindowFlags(Qt::FramelessWindowHint);     // 设置窗口无边框
+    ui->closebutton->setMouseTracking(true);
+    ui->closebutton->setStyleSheet("QPushButton{border-image: url(:/mainpicture/kb.png);background-image: url(:/mainpicture/kb.png);color: rgb(255, 255, 255);}"
+                                   "QPushButton:hover{border-image: url(:/mainpicture/kb.png);background-color: rgb(226, 63, 48);color: rgb(255, 255, 255);}"
+                                   );
+    ui->minButton->setMouseTracking(true);
+    ui->minButton->setStyleSheet("QPushButton{border-image: url(:/mainpicture/kb.png);background-image: url(:/mainpicture/kb.png);color: rgb(255, 255, 255);}"
+                                 "QPushButton:hover{border-image: url(:/mainpicture/kb.png);background-color: rgb(75, 162, 255);color: rgb(255, 255, 255);}"
+                                 );
+    ui->openFileButton->setMouseTracking(true);
+    ui->openFileButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/chatwindow/file.png);}"
+                                      "QPushButton:hover{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/chatwindow/file_hover.png);}"
+                                      );
+
 }
 
 chatWindow::~chatWindow()
 {
     tcpClient->close();
     delete ui;
+}
+//拖动窗口
+void  chatWindow::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        dragPosition = event->globalPos() - frameGeometry().topLeft();
+        event->accept();
+    }
+}
+void  chatWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->buttons() && Qt::LeftButton)
+    {
+        move(event->globalPos() - dragPosition);
+        event->accept();
+    }
 }
 // 重写事件过滤虚函数
 bool chatWindow::eventFilter(QObject *obj, QEvent *ev)
@@ -354,3 +385,12 @@ void chatWindow::on_sendMsgButton_clicked()
 //{
 
 //}
+void chatWindow::on_closebutton_clicked()
+{
+    this->close();
+}
+
+void chatWindow::on_minButton_clicked()
+{
+    this->showMinimized();
+}

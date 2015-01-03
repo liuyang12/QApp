@@ -10,9 +10,11 @@
 #include <QSqlDatabase>
 #include <QSqlQuery>
 #include <QSqlError>
+#include "friendinfo.h"
 
 extern TCPLink *tcplink;           // tcplink 全局变量
 //extern QSqlDatabase *db;            // db 数据库
+QTreeWidgetItem* clicked_item;
 
 QAppWindow::QAppWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -84,10 +86,17 @@ QAppWindow::QAppWindow(QWidget *parent) :
         qDebug() << tcplink->friendVect[i];
     }
 
-    //建树
+    //建treewidget
     build_tree();
+    clicked_item = ui->treeWidget->topLevelItem(0);
+    //treewidget边框隐藏
     ui->treeWidget->setFrameStyle(QFrame::NoFrame);
-
+    //双击点击treewidget节点
+    connect(ui->treeWidget,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,SLOT(showSelectedImage(QTreeWidgetItem*,int)));
+    //connect(ui->treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),this,SLOT(ItemClicked(QTreeWidgetItem*,int)));
+    QTimer *timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), this, SLOT(refresh()));
+    timer->start(500);
 
 }
 
@@ -659,18 +668,170 @@ void QAppWindow::on_addfriend_clicked()
 
 }
 
+//-----------------------------treewidget---------------------------------------
+
 //建TreeWidget
 void QAppWindow::build_tree()
 {
     ui->treeWidget->setStyleSheet("QTreeWidget::item{height:40px}");
     ui->treeWidget->setIconSize(QSize(40,40));
 
-    QTreeWidgetItem *group = new QTreeWidgetItem(ui->treeWidget,QStringList(QString("clssmates")));
-    QTreeWidgetItem *friend1 = new QTreeWidgetItem(group,QStringList(QString(" weijie")));
-    friend1->setIcon(0,QIcon(":/picture/tx1.jpg"));
+    QSqlQuery p;
+    p.exec("select * from groups");      // 指定查找数据库中的groups表
 
+    QTreeWidgetItem *group[100]; //最多设10个分组,每组最多10个人
+    int i = 0;
 
+    while(p.next())
+    {
+        QString groupname = p.value(1).toString(); //读组名
+        QString member = p.value(2).toString(); //读成员学号
+        //qDebug()<<groupname<<member;
+
+        group[i] = new QTreeWidgetItem(ui->treeWidget,QStringList(groupname));//建组名的父节点
+        group[i]->setData(0,Qt::UserRole,groupname);
+
+        int j = 0;
+        QSqlQuery q;
+        q.exec("select * from friends");      // 指定查找数据库中的friends表
+        while(q.next())
+        {
+            QString ip = q.value(1).toString();
+            if((member.indexOf(ip)>=0)&&(member.indexOf(ip)<=member.size()))
+            {
+                //qDebug() << ip << member.indexOf(ip);
+                //建好友子节点
+                group[10*(i+1)+j] = new QTreeWidgetItem(group[i],QStringList(q.value(2).toString()));
+                group[10*(i+1)+j]->setIcon(0,QIcon(q.value(3).toString()));
+                group[10*(i+1)+j]->setData(0,Qt::UserRole,(q.value(1).toString()));
+//                new_treewidgetitem *_item = new new_treewidgetitem;
+//                group[10*(i+1)+j] = new QTreeWidgetItem;
+//                group[10*(i+1)+j]->addChild(group[i]);
+//                ui->treeWidget->setItemWidget(group[10*(i+1)+j],0,_item);
+            }
+            j++;
+        }
+        i++;
+    }
+//    QTreeWidgetItem *group = new QTreeWidgetItem(ui->treeWidget,QStringList(QString("clssmates")));
+//    QTreeWidgetItem *friend1 = new QTreeWidgetItem(group,QStringList(QString(" weijie")));
+//    friend1->setIcon(0,QIcon(":/picture/tx1.jpg"));
     ui->treeWidget->expandAll(); //结点全部展开
+    return;
+    //db.close();
+}
+
+
+//treewidget节点双击响应（聊天）
+void QAppWindow::showSelectedImage(QTreeWidgetItem *item, int column)
+{
+    //qDebug()<<"haha";
+    QTreeWidgetItem *parent = item->parent();
+    if(NULL==parent) //注意：最顶端项是没有父节点的，双击这些项时注意(陷阱)
+         return;
+    QVariant var = item->data(0,Qt::UserRole);
+    QString student_ID = var.toString();//读出好友的学号信息
+
+    //开始聊天
+    // TODO: 重写开始聊天
+    ///
+    ///
+    ///
+    ///
+    ///
+
+//    chatWindow *chat;
+//    chat = new chatWindow;       // 打开聊天窗口 学号为student_ID
+//    chat->show();
+
+}
+
+
+//添加treewidget节点右键菜单用于删除好友
+void QAppWindow::on_treeWidget_customContextMenuRequested(const QPoint &pos)
+{
+    curItem = ui->treeWidget->itemAt(pos);  //获取当前被点击的节点
+    if(curItem==NULL)return;           //这种情况是右键的位置不在treeItem的范围内，即在空白位置右击
+    QVariant var = curItem->data(0,Qt::UserRole);//读出该好友的学号
+
+    if(curItem->parent() == NULL)   //分组的右键菜单
+    {
+       QMenu *popMenu =new QMenu(this);//定义一个右键弹出菜单
+       QAction *delegroup = popMenu->addAction("Delete this Group");
+       connect(delegroup,SIGNAL(triggered(bool)), this, SLOT(onDeleGroup()));
+       popMenu->exec(QCursor::pos());//弹出右键菜单，菜单位置为光标位置
+    }
+    else //好友的右键菜单
+    {
+        QMenu *popMenu =new QMenu(this);//定义一个右键弹出菜单
+        QAction *delefriend = popMenu->addAction("Delete this Friend");
+        connect(delefriend,SIGNAL(triggered(bool)), this, SLOT(onDeleFriend()));
+        popMenu->exec(QCursor::pos());//弹出右键菜单，菜单位置为光标位置
+    }
+}
+
+void QAppWindow::onDeleGroup()
+{
+    QVariant var = curItem->data(0,Qt::UserRole);
+    if(var.toString()=="默认分组")
+    {
+        QMessageBox::information(this, tr("info"), tr("默认分组不可删除"), QMessageBox::Ok);
+    }
+    else
+    {
+        //QTreeWidgetItem* m_currentItem = ui->treeWidget->itemAt(pos);
+        int i = ui->treeWidget->indexOfTopLevelItem(curItem);
+        curItem->takeChildren();
+        ui->treeWidget->takeTopLevelItem(i);
+
+        QString s = "delete from groups where name='"+var.toString()+"'";
+        //qDebug()<<s;
+        QSqlQuery p;
+        p.exec(s);
+    }
+
+    //插入语句：insert into 表名(字段列表) values(值列表)。如： insert into person(name, age) values(‘传智’,3)
+    //更新语句：update 表名 set 字段名=值 where 条件子句。如：update person set name=‘传智‘ where id=10
+    //delete from 表名 where 条件子句。如：delete from person  where id=10
+
+}
+
+void QAppWindow::onDeleFriend()
+{
+    //QTreeWidgetItem* m_currentItem = ui->treeWidget->itemAt(pos);
+    curItem->parent()->removeChild(curItem);
+    QVariant var = curItem->data(0,Qt::UserRole);
+    QString s = "delete from friends where account='"+var.toString()+"'";
+    //qDebug()<<s;
+    QSqlQuery p;
+    p.exec(s);
+}
+
+
+//在treewidget里点击鼠标刷新好友列表
+void QAppWindow::refresh()
+//void QAppWindow::on_treeWidget_clicked(const QModelIndex &index)
+{
+   // ui->treeWidget->takeTopLevelItem();
+
+    while (ui->treeWidget->topLevelItemCount() > 0 )
+    {
+        //qDebug("%d",ui->treeWidget->topLevelItemCount());
+        QTreeWidgetItem *parent = ui->treeWidget->takeTopLevelItem(0);
+        parent->takeChildren ();
+        //释放掉存放节点的内存空间
+        int childCount=parent->childCount();//子节点数
+        for (int i=0;i<childCount;i++)
+        {
+            QTreeWidgetItem* item = parent->child(0);
+            delete item;
+            item=NULL;
+        }
+        delete parent;
+        parent=NULL;
+    }
+    build_tree();
+    //qDebug("success") ;
 }
 
 void QAppWindow::on_OkPushButton_clicked()
