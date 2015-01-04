@@ -813,7 +813,9 @@ void QAppWindow::showSelectedImage(QTreeWidgetItem *item, int column)
     //开始聊天
     // TODO: 重写开始聊天
     tcplink->friendInfo.account = student_ID;
+//    tcplink->friendInfo = tcplink->friendVect[tcplink->findAccount(student_ID)];
     // 确定好友在线，发出聊天请求
+    tcplink->friendInfo.node.hostAddr = tcplink->friendVect[tcplink->findAccount(student_ID)].node.hostAddr;
     if(ONLINE == tcplink->confirmFriendOnline(student_ID))
     {
          tcplink->startChatRequest();    // 发出聊天请求
@@ -1079,12 +1081,14 @@ void QAppWindow::on_startadd_clicked()
         }
     }
     qDebug()<<s;
+    if(friendNo.size() == 0)    // 一个也没选，不开启群聊
+        return ;
     QSqlQuery p;
     // 检查是否已经存在这组群聊信息
     p.exec("insert into blocks(members) values('"+s+"')");      // 注意同时更新群聊窗口（是否已经存在该群聊）
 
     //打开群聊窗口chatwindow
-    tcplink->startChatRequest();
+    tcplink->startGroupChat(friendNo);
     // 打开群聊窗口
     chatNumber = findChatWindow(friendNo);
     if(-1 == chatNumber)    // 没有该窗口

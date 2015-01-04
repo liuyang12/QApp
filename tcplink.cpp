@@ -57,6 +57,15 @@ void TCPLink::disconnectfriendSocket()
     disconnect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
     disconnect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
 }
+// 重新连接好友消息信号和槽
+void TCPLink::reconnectfriendSocket()
+{
+    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+    // 获取发送的数据信息
+    /** friendInfo.tcpSocket = tcpSender */
+    connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
+    connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
+}
  // 在 friendVect[] 中查找相应的账号，如果存在则已经是好友，返回序号，如果不存在则还不是好友返回 -1
 int TCPLink::findAccount(QString &account)
 {
@@ -87,6 +96,7 @@ void TCPLink::acceptConnection()
         // 当有客户来访时，将tcpSocket接受tcpServer建立的socket
         loginInfo.request = GET_FRIEND;
         friendInfo.tcpSocket = tcpServer->nextPendingConnection();
+        TCPLink::reconnectfriendSocket();   // 只要 friendInfo.tcpSocket 改变，重新连接信号和槽
         friendInfo.node.hostAddr = friendInfo.tcpSocket->peerAddress().toString();   // 获取客户端IP地址
         //    friendInfo.node.hostPort = friendInfo.tcpSocket->peerPort();  // 获取客户端端口号
         qDebug() << "accept connection from client: " << friendInfo.node.hostAddr;
@@ -135,11 +145,11 @@ void TCPLink::acceptConnection()
 //            }
 
 //        }
-        connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
-        // 获取发送的数据信息
-        /** friendInfo.tcpSocket = tcpSender */
-        connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
-        connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
+//        connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));
+//        // 获取发送的数据信息
+//        /** friendInfo.tcpSocket = tcpSender */
+//        connect(friendInfo.tcpSocket, SIGNAL(connected()), this, SLOT(sendData()));     // 已连接向服务器发送请求
+//        connect(friendInfo.tcpSocket, SIGNAL(readyRead()), this, SLOT(recieveData()));     // 准备读取服务器端的数据
         //    connect(friendInfo.tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displayError(QAbstractSocket::SocketError)));    // 处理错误信息
 //        friendInfo.isConnected = true;
 //    }
@@ -162,10 +172,19 @@ void TCPLink::newTCPConnection()
     int friendNumber;
     friendNumber = findAccount(friendInfo.account);
     if(friendNumber > -1)
+    {
         friendInfo.isConnected = friendVect[friendNumber].isConnected;
+        if(friendVect[friendNumber].isConnected)
+        {
+            friendInfo.tcpSocket = friendVect[friendNumber].tcpSocket;
+            TCPLink::reconnectfriendSocket();       // 只要 friendInfo.tcoSocket 变化就重新连接
+        }
+    }
+
     if(friendNumber != 0 && friendInfo.isConnected == false)
     {
-        friendInfo.tcpSocket->abort();
+        ////
+        friendInfo.tcpSocket->abort();  // 解决为什么经常在这里出现 bug
         friendInfo.tcpSocket->connectToHost(friendInfo.node.hostAddr, getPortNumber(friendInfo.account) /*friendInfo.node.hostPort*/); // 连接到 待加好友服务器，IP地址为回复，端口号为好友账号后四位
         qDebug() << "connect to host: IP " << friendInfo.node.hostAddr << " port " << getPortNumber(friendInfo.account);
 //        if(-1 == friendNumber)  // 还不是好友，需要接下来发送好友请求
@@ -643,6 +662,7 @@ void TCPLink::queryRequest(FriendInfo &frd/* = friendInfo*/)
 {
     requestKind = QUERY;
     friendInfo = frd;
+    TCPLink::reconnectfriendSocket();       // 只要更新了 friendInfo.tcpSocket 就重新连接
     newConnect();
 }
 // 登出请求

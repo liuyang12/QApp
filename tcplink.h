@@ -66,6 +66,7 @@ public:
     void connectRequest(void);          // 建立连接请求
 
     void disconnectfriendSocket(void);      // 切断之前的信号槽连接
+    void reconnectfriendSocket(void);       // 重新连接好友消息信号和槽
 
     int findAccount(QString &account);      // 在 friendVect[] 中查找相应的账号，如果存在则已经是好友，返回序号，如果不存在则还不是好友返回 -1
 

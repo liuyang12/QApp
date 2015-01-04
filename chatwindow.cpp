@@ -338,7 +338,7 @@ void chatWindow::appendShowLine(QString &account)
     }
     else
     {
-        temp = QString("<font size=\"3\" color=blue>%1  (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[tcplink->findAccount(account)].name).arg(account).arg(datetime).arg(recieveString);
+        temp = QString("<font size=\"3\" color=blue>%1 (<font color=dodgerblue><u>%2</u></font>) %3</font>   %4").arg(tcplink->friendVect[tcplink->findAccount(account)].name).arg(account).arg(datetime).arg(recieveString);
         lastSpeakTime = current;
     }
     lastSpeaker = account;
@@ -369,7 +369,7 @@ void chatWindow::readMessage()
             in >> recieveString;
             if (recieveString == "")
                 return ;
-            qDebug() << recieveString;
+//            qDebug() << recieveString;
             blockSize = 0;  // 重新归零
             // 将接收到的消息显示在输出框
             chatWindow::appendShowLine(tcplink->friendVect[friendNo[i]].account);
@@ -457,7 +457,7 @@ void chatWindow::on_sendMsgButton_clicked()
             tcplink->friendVect[friendNo[i]].tcpSocket->write(block);       // 向每个在线好友发送消息
     }
 //    friendInfo.tcpSocket->write(block); // 发送数据
-    qDebug() << tmpString;
+//    qDebug() << tmpString;
 
 }
 

@@ -161,6 +161,7 @@ struct FriendInfo
     FriendInfo()
     {	avatar = status = friendKind = 0;
         isConnected = false;
+        tcpSocket = new QTcpSocket();
     }
 
     friend QDataStream & operator<< (QDataStream &qos, const FriendInfo &fi)

@@ -58,8 +58,8 @@
     <widget class="QTextEdit" name="Show_message">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>0</y>
+       <x>1</x>
+       <y>1</y>
        <width>421</width>
        <height>321</height>
       </rect>
@@ -119,7 +119,7 @@
     <widget class="QTextEdit" name="Edit_message">
      <property name="geometry">
       <rect>
-       <x>0</x>
+       <x>3</x>
        <y>0</y>
        <width>411</width>
        <height>71</height>
@@ -194,7 +194,7 @@
 color: rgb(255, 255, 255);</string>
    </property>
    <property name="text">
-    <string>发 送</string>
+    <string>发 送(&amp;S)</string>
    </property>
   </widget>
   <widget class="QProgressBar" name="clientProgressBar">
@@ -462,7 +462,7 @@ border-radius:8px;
 color: rgb(255, 255, 255);</string>
    </property>
    <property name="text">
-    <string>关 闭</string>
+    <string>关 闭(&amp;C)</string>
    </property>
    <property name="flat">
     <bool>true</bool>
