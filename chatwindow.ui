@@ -58,16 +58,16 @@
     <widget class="QTextEdit" name="Show_message">
      <property name="geometry">
       <rect>
-       <x>-10</x>
-       <y>-10</y>
-       <width>431</width>
-       <height>331</height>
+       <x>0</x>
+       <y>0</y>
+       <width>421</width>
+       <height>321</height>
       </rect>
      </property>
      <property name="font">
       <font>
        <family>微软雅黑</family>
-       <pointsize>11</pointsize>
+       <pointsize>9</pointsize>
       </font>
      </property>
      <property name="styleSheet">
@@ -128,7 +128,7 @@
      <property name="font">
       <font>
        <family>微软雅黑</family>
-       <pointsize>11</pointsize>
+       <pointsize>10</pointsize>
       </font>
      </property>
      <property name="contextMenuPolicy">
@@ -143,8 +143,8 @@
   <widget class="QPushButton" name="openFileButton">
    <property name="geometry">
     <rect>
-     <x>220</x>
-     <y>410</y>
+     <x>197</x>
+     <y>409</y>
      <width>91</width>
      <height>21</height>
     </rect>
@@ -200,7 +200,7 @@ color: rgb(255, 255, 255);</string>
   <widget class="QProgressBar" name="clientProgressBar">
    <property name="geometry">
     <rect>
-     <x>310</x>
+     <x>284</x>
      <y>410</y>
      <width>101</width>
      <height>16</height>
@@ -320,7 +320,7 @@ border-radius:8px;
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>410</y>
+     <y>409</y>
      <width>81</width>
      <height>21</height>
     </rect>
@@ -425,7 +425,7 @@ border-radius:8px;
   <widget class="QLabel" name="clientStatusLabel">
    <property name="geometry">
     <rect>
-     <x>320</x>
+     <x>295</x>
      <y>410</y>
      <width>54</width>
      <height>16</height>

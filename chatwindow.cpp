@@ -332,14 +332,16 @@ void chatWindow::appendShowLine(QString &account)
     QString temp;
     /// todo 最前面加好友昵称
     QDateTime current = QDateTime::currentDateTime();
-    if(lastSpeaker == tcplink->friendVect[0].name && lastSpeakTime.secsTo(current) < 60)  // 如果上一个说话者距离时间小于1min就不显示
+    if(lastSpeaker == account && lastSpeakTime.secsTo(current) < 60)  // 如果上一个说话者距离时间小于1min就不显示
     {
         temp = recieveString;
     }
     else
     {
         temp = QString("<font size=\"3\" color=blue>%1  (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[tcplink->findAccount(account)].name).arg(account).arg(datetime).arg(recieveString);
+        lastSpeakTime = current;
     }
+    lastSpeaker = account;
     ui->Show_message->append(temp); // 显示在输出框
 }
 
@@ -428,7 +430,7 @@ void chatWindow::on_sendMsgButton_clicked()
     QString datetime = getCurrentDateTime();
     /// todo 最前面加自己的昵称
     QDateTime current = QDateTime::currentDateTime();
-    if(lastSpeaker == tcplink->friendVect[0].name && lastSpeakTime.secsTo(current) < 60)  // 如果上一个说话者距离时间小于1min就不显示
+    if(lastSpeaker == tcplink->friendVect[0].account && lastSpeakTime.secsTo(current) < 60)  // 如果上一个说话者距离时间小于1min就不显示
     {
         ui->Show_message->append(tmpString);   // 只显示消息
     }
@@ -436,7 +438,9 @@ void chatWindow::on_sendMsgButton_clicked()
     {
         sendString = QString("<font size=\"3\" color=green>%1 (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[0].name).arg(tcplink->loginInfo.account).arg(datetime).arg(tmpString);   // 转为 HTML 账号-时间-消息
         ui->Show_message->append(sendString);   // 显示在输入窗口
+        lastSpeakTime = current;
     }
+    lastSpeaker = tcplink->loginInfo.account;
     // 发送消息
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
