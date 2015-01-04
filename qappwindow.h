@@ -39,6 +39,8 @@ private slots:
 ////    void connectionFailed(void);        // 与服务器连接失败
     void serverDisconnected(void);      // 服务器离线
 
+    void addfriendinfo(void);   // 成功添加好友，刷新好友列表
+
 //    void newListen(void);               // 建立 TCP 监听事件
 //    void acceptConnection(void);        // 接受客户端连接
 //    void displayError(QAbstractSocket::SocketError);    // 显示错误信息
@@ -84,6 +86,14 @@ private slots:
     void onDeleGroup();
 
     void onDeleFriend();
+
+    void on_chat_clicked();
+
+    void on_addchat_clicked();
+
+    void on_qunchat_clicked();
+
+    void on_startadd_clicked();
 
 
 //    void on_treeWidget_clicked(const QModelIndex &index);

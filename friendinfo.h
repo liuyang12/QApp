@@ -51,6 +51,9 @@ private:
 
 protected:
 
+signals:
+    void addfriendinfoSignal(void);     // 添加好友信号，应该更新好友列表
+
 
 };
 

@@ -23,6 +23,7 @@ public:
     ServerNode serverNode;  // 服务器节点
     qint32 requestKind;     // 请求类型
     qint32 replyKind;       // 应答类型
+    QString groupString;       // 群聊字符串
 
 //    QString replyStr;       // 应答字符串
 
@@ -60,6 +61,8 @@ public:
     // 用户请求 - 与好友（服务器）
     void addFriendRequest(void);        // 添加好友请求
     void startChatRequest(void);        // 开始聊天请求
+    void groupChatRequest(QString groupStr);        // 群聊请求
+    void startGroupChat(QVector<int> friendNo); // 发起群聊
     void connectRequest(void);          // 建立连接请求
 
     void disconnectfriendSocket(void);      // 切断之前的信号槽连接
@@ -74,6 +77,7 @@ signals:
     void travelsalReplySignal(qint32 replyKind); // 遍历好友恢复信号
     void connectionFailedSignal();          // 连接失败信号
     void disconnectedSignal();              // 断开连接信号
+    void friendstatusChangedSignal();       // 好友在线状态改变信号
 
 public slots:
     void sendRequest();         // 向服务器发送信息

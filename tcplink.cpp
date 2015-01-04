@@ -244,6 +244,11 @@ void TCPLink::sendData()
         friendVect[friendNumber].isConnected = true;    // 已经连接
 
         break;
+    case GROUP_CHAT:        // 发出群聊请求 "groupchat_$account_$1_$2_$3"
+        friendInfo.tcpSocket->write(QString("groupchat_"+groupString).toStdString().c_str());
+        qDebug() << tr("groupchat_") << groupString;
+        friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
+        friendVect[friendNumber].isConnected = true;    // 已经连接
 //    case :
 
 //        break;
@@ -261,7 +266,38 @@ void TCPLink::recieveData()
    qba = friendInfo.tcpSocket->readAll();
    Reply = QVariant(qba).toString();
    qDebug() << Reply;
-   if(Reply.left(8) == "connect_")  // 好友发出连接请求
+   if(Reply.left(10) == "groupchat_")       // 好友发出群聊请求
+   {
+       groupString = Reply.remove(0, 9);  // 删除前十个字符 "groupchat_"
+       if((groupString.size()+1) % 11 == 0)     // 如果长度+1是11的整数倍，那么有这么多好友，否则不是群聊
+       {
+           QStringList accountList;
+           accountList = groupString.split("_");      // 按 "_" 截取好友
+           friendInfo.account = accountList[0];         // 发起请求的是第一个好友
+           friendNumber = findAccount(friendInfo.account);
+           if(-1 == friendNumber)
+           {
+               qDebug() << "用户" << friendInfo.account << "还不是您的好友\n别忘了返回添加哦~";
+           }
+           else if(0 == friendNumber)
+           {
+               qDebug() << "亲爱的" << friendVect[findAccount(loginInfo.account)].name << "，目前还不支持同一账号多客户端登陆哦~\n您可以等待我们的更新，谢谢！";
+           }
+           else
+           {
+               friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
+               friendVect[friendNumber].isConnected = friendInfo.isConnected;
+               friendVect[friendNumber].node.hostAddr = friendVect[friendNumber].node.hostAddr;
+           }
+           replyKind = GROUPCHAT_REQUEST;       // 群聊请求
+       }
+       else
+       {
+           qDebug() << "群聊消息不正确";
+       }
+
+   }
+   else if(Reply.left(8) == "connect_")  // 好友发出连接请求
    {
         friendInfo.account = Reply.right(10);
         friendNumber = findAccount(friendInfo.account);
@@ -324,8 +360,8 @@ void TCPLink::recieveData()
    else if(Reply == "ADD")  // 好友接收好友请求
    {
 //       chatWindow *chat;
-       friendVect.push_back(friendInfo);
-       databaseInsert(friendInfo);
+//       friendVect.push_back(friendInfo);
+//       databaseInsert(friendInfo);
        /** 将好友信息显示在主界面窗口上 */
 //       chat = new chatWindow;
 //       chat->show();
@@ -674,7 +710,7 @@ int TCPLink::confirmFriendOnline(QString &account)
                 friendVect[friendNumber].node.hostAddr = "";    // 用户不在线，在线IP清零
                 friendVect[friendNumber].status = OFFLINE;
                 friendVect[friendNumber].isConnected = false;   // 不在线，未连接
-
+                emit friendstatusChangedSignal();       // 发出好友在线状态改变信号
                 return OFFLINE;
 
             }
@@ -706,6 +742,7 @@ int TCPLink::confirmFriendOnline(QString &account)
                     friendVect[friendNumber].isConnected = false;   // 不再处于连接状态，重新连接
 //                    return IPUPDATED;
                 }
+                emit friendstatusChangedSignal();       // 发出好友在线状态改变信号
                 return ONLINE;
             }
             else if(Reply == "")
@@ -787,6 +824,7 @@ bool TCPLink::travelsalRequest(void)
                     qDebug() << "好友" << tempfriend.account << "离线";
 //                    replyKind = FRIEND_OFFLINE;
 //                    friendInfo.status = OFFLINE;
+//                    emit friendstatusChangedSignal();       // 发出好友状态改变信号
                 }
                 else if(ipRegExp.exactMatch(Reply))
                 {
@@ -960,4 +998,52 @@ void TCPLink::connectRequest()
 {
     requestKind = CONNECT;
     TCPLink::newTCPConnection();
+}
+// 群聊请求
+void TCPLink::groupChatRequest(QString groupStr)
+{
+    requestKind = GROUP_CHAT;
+    groupString = groupStr;
+    TCPLink::newTCPConnection();
+}
+
+/// 群聊
+// 群聊请求
+void TCPLink::startGroupChat(QVector<int> friendNo)
+{
+    // 之前应该建立与每一位好友的连接
+    FriendInfo tmpfriend;   // 临时转存
+//    QString groupChatStr;
+    groupString = /*"groupchat_"*/loginInfo.account;
+    tmpfriend = friendInfo;    // 首先保存临时好友信息
+    qDebug() << friendNo;
+    for(int i = 0; i < friendNo.size(); i++)
+    {
+        groupString = groupString + "_" + friendVect[friendNo[i]].account;    // "$account_$1_$2_$3"
+    }
+    for(int i = 0; i < friendNo.size(); i++)
+    {
+        // 每次打开聊天窗口确定所有好友的在线状态
+        if(ONLINE == confirmFriendOnline(friendVect[friendNo[i]].account) || IPUPDATED == confirmFriendOnline(friendVect[friendNo[i]].account))  // 在线
+        {
+            if(!friendVect[friendNo[i]].isConnected)   // 如果还未连接则进行连接
+            {
+                friendInfo = friendVect[friendNo[i]];
+                groupChatRequest(groupString); // 向每一位好友发出群聊请求
+            }
+        }
+    }
+//    qDebug() << groupChatStr;
+    // 向每一位好友发出群聊请求
+//    for(int i = 0; i < friendNo.size(); i++)
+//    {
+//        if(ONLINE == friendVect[friendNo[i]].status)    // 好友在线，即有相应的 TCPSocket
+//        {
+//            /// TODO：给每一在线好友加消息 "groupchat_$account"
+//            requestKind = GROUP_CHAT;
+//            friendVect[friendNo[i]].tcpSocket->write(groupChatStr.toStdString().c_str());
+//            ///
+//        }
+//    }
+    friendInfo = tmpfriend;    // 恢复临时好友信息
 }

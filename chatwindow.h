@@ -2,6 +2,7 @@
 #define CHATWINDOW_H
 
 #include <QDialog>
+#include <QDateTime>
 #include "classConstant.h"
 
 namespace Ui {
@@ -13,10 +14,13 @@ class chatWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit chatWindow(QVector<int> frNo, QWidget *parent = 0);
+    explicit chatWindow(QVector<int> frNo, bool beStarter = false, QWidget *parent = 0);
     ~chatWindow();
     QPoint dragPosition;
     QString HeadString;     // 窗口标题
+    bool beStarter;         // 群聊的发起者
+    QDateTime lastSpeakTime; // 上一个聊天时刻
+    QString lastSpeaker;    // 上一个聊天者
     QVector<int> friendNo;  // 聊天窗口中的所有好友的编号，通过这个与 friendVect[] 获取好友的TCPSocket 进而进行聊天，默认其中包含自己，但是不显式表示出来 friendNo[0] 是第一个好友的编号，而不是自己
     void initWindowHead(void );     // 设置窗口标题和头像
     void initSocket(void );     // 初始化 TCPSocket 通信

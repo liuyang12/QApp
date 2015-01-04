@@ -7,6 +7,9 @@
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QDebug>
+#include "tcplink.h"
+
+extern TCPLink * tcplink;   // TCPLink 全局变量外部申明
 
 extern QSqlDatabase db;
 
@@ -63,7 +66,7 @@ void  friendinfo::mouseMoveEvent(QMouseEvent *event)
 //界面初始化
 void friendinfo::initStatus()
 {
-    ui->nicheng->setText("2012011480"); //默认昵称是学号
+    ui->nicheng->setText(tcplink->friendInfo.account); //默认昵称是学号
     ui->tx->setStyleSheet("border-image: url(:/friendinfo/tx.jpg);"); //初始头像
 
     //初始化QCombobox
@@ -131,12 +134,47 @@ void friendinfo::on_confirm_button_clicked()
     //点击确定后，更新groups表、friends表、返回qappwindow并刷新treewidget
     //插入语句：insert into 表名(字段列表) values(值列表)。如： insert into person(name, age) values(‘传智’,3)
 
-    //注意要修改学号！
-    QString s_group = "insert into groups(name, members) values('"+ui->comboBox->currentText()+"','2012011480')";
-    qDebug() << s_group;
-    //QString s_friends = "insert into friends(account,nickname,avatar,_avatar,IP,status) values("+s1+","+s2+","+s3+","+s4+","+s5+","+s6+")";
-    QSqlQuery q;
-    q.exec(s_group);
+    //注意要修改学号！注意不是直接添加一个分组
+    QString currGroup;
+    QSqlQuery qr;
+    bool groupexist;
+    groupexist = false; // 是否已存在该分组
+    currGroup = ui->comboBox->currentText();
+    qr.exec("select * from groups");    // 查找所有的组
+    while(qr.next())
+    {
+        if(qr.value(1).toString() == currGroup)
+        {
+            QSqlQuery q;
+            QString oldmembers;
+            oldmembers = qr.value(2).toString();
+//            q.prepare("update friends set IP = :IP where account = :account");
+            q.prepare("update groups set members = :members where name = :name");
+            q.bindValue(":name", currGroup);
+            q.bindValue(":members", oldmembers + " " + tcplink->friendInfo.account);    // 在最后增加一个成员，以空格间隔
+            q.exec();
+            groupexist =true;
+        }
+    }
+    if(!groupexist)
+    {
+        // 在分组 groups 中增加该好友
+        QString s_group = "insert into groups(name, members) values('"+ui->comboBox->currentText()+"','"+tcplink->friendInfo.account+"')";
+
+        qDebug() << s_group;
+        //QString s_friends = "insert into friends(account,nickname,avatar,_avatar,IP,status) values("+s1+","+s2+","+s3+","+s4+","+s5+","+s6+")";
+        qr.exec(s_group);
+    }
+    tcplink->friendInfo.name = ui->nicheng->text(); // 昵称
+    if(-1 == tcplink->findAccount(tcplink->friendInfo.account))
+    {
+        // 好友列表中不存在该好友
+        tcplink->friendVect.push_back(tcplink->friendInfo); // 更新tcplink->friendVect
+        tcplink->databaseInsert(tcplink->friendInfo);   // 更新数据库，插入到 friends 表中
+        qDebug() << "更新好友信息成功:" << tcplink->friendInfo;
+    }
+
+    emit addfriendinfoSignal();     // 发出添加好友信号
     //p.exec(s_friends);
 
     this->close();
@@ -148,20 +186,21 @@ void friendinfo::on_choose_tx_clicked()
     flag_tx = !flag_tx;
     ui->tableWidget->setVisible(flag_tx);
 }
-
+// 设置好友头像
 void friendinfo::getCell(int row,int col)
 {
     //qDebug("%d,%d",row,col);
     QString s;
     if(row==0&col==0)
     {
-        s = "border-image: url(:/friendinfo/tx.jpg);";
+        s = ":/friendinfo/tx.jpg";
     }
     else
-        s = "border-image: url(:/friendinfo/tx"+QString::number(4*row+col-1)+".jpg);";
+        s = ":/friendinfo/tx"+QString::number(4*row+col-1)+".jpg";
     flag_tx = !flag_tx;
     ui->tableWidget->setVisible(flag_tx );
-    ui->tx->setStyleSheet(s);
+    ui->tx->setStyleSheet(QString("border-image: url(%1);").arg(s));
+    tcplink->friendInfo.avatar = s; // 设置好友头像
 
 }
 

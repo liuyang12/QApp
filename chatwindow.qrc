@@ -11,8 +11,6 @@
         <file>chatwindow/filemanager.png</file>
         <file>chatwindow/file.png</file>
         <file>chatwindow/deepbule.jpg</file>
-        <file>chatwindow/font.png</file>
-        <file>chatwindow/font_hover.png</file>
         <file>chatwindow/bj.jpg</file>
         <file>chatwindow/QX1.jpg</file>
         <file>chatwindow/QX4.jpg</file>
@@ -20,5 +18,7 @@
         <file>chatwindow/QX6.jpg</file>
         <file>chatwindow/QX7.jpg</file>
         <file>chatwindow/QX8.jpg</file>
+        <file>chatwindow/lt.png</file>
+        <file>chatwindow/font.png</file>
     </qresource>
 </RCC>

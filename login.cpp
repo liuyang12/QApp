@@ -18,6 +18,7 @@ login::login(QWidget *parent) :
     ui(new Ui::login)
 {
     ui->setupUi(this);
+    ui->label_3->setStyleSheet("QLabel{border:1px solid gray;border-image: url(:/mainpicture/tx.jpg);}");
     flag = false;
     // 设置语言编码格式
 //    QTextCodec::setCodecForLocale(QTextCodec::codecForName("system"));

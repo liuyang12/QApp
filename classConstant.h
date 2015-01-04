@@ -28,7 +28,8 @@ enum REQUEST{   // 请求
     GET_FRIEND = 15,     // 好友请求
     TRAVELSAL = 16,     // 遍历查询所有好友状态
     CONNECT = 17,       // 发起连接
-    START_CHAT = 18     // 开始聊天请求
+    START_CHAT = 18,     // 开始聊天请求
+    GROUP_CHAT = 19     // 群聊
 };
 enum REPLY{     // 回复
     NO_REPLY = 99,          // 无回复
@@ -55,6 +56,8 @@ enum REPLY{     // 回复
     CONNECT_SUCCESS = 40,   // 连接成功
     CONNECT_FAILED = 41,    // 连接失败
     CONNECT_REQUEST = 43,   // 好友连接请求
+    // 群聊回复
+    GROUPCHAT_REQUEST = 45, // 群聊请求
     // 登出回复
     LOGOUT_SUCCESS = 50,    // 登出成功
     LOGOUT_FAILED = 51,      // 登出失败

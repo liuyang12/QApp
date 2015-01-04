@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Login</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="picture.qrc">
+    <normaloff>:/picture/qq.png</normaloff>:/picture/qq.png</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>false</bool>
@@ -298,7 +302,7 @@ border-image: url(:/picture/kb.png);</string>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">border-image: url(:/picture/tx2.jpg);</string>
+    <string notr="true">border-image: url(:/friendinfo/tx.jpg);</string>
    </property>
    <property name="text">
     <string/>
@@ -421,6 +425,8 @@ background-image: url(:/picture/kb.png);</string>
   <zorder>findpassword</zorder>
   <zorder>zhu_ce</zorder>
  </widget>
- <resources/>
+ <resources>
+  <include location="picture.qrc"/>
+ </resources>
  <connections/>
 </ui>

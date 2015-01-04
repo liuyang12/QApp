@@ -35,12 +35,33 @@ QAppWindow::QAppWindow(QWidget *parent) :
     ui->Button_queryFriend->setStyleSheet("QPushButton{border-image: url(:/mainpicture/find_normal.png);background-image: url(:/mainpicture/kb.png);}"
                                           "QPushButton{border-image: url(:/mainpicture/find_hover.png);background-image: url(:/mainpicture/kb.png);}"
                                           );
+    ui->chat->setMouseTracking(true);
+    ui->chat->setStyleSheet("QPushButton{border-image: url(:/mainpicture/chat_normal.png);background-image: url(:/mainpicture/kb.png);}"
+                            "QPushButton:hover{border-image: url(:/mainpicture/chat_hover.png);background-image: url(:/mainpicture/kb.png);}"
+                            );
+    ui->qunchat->setMouseTracking(true);
+    ui->qunchat->setStyleSheet("QPushButton{border-image: url(:/mainpicture/qunchat_normal.png);background-image: url(:/mainpicture/kb.png);}"
+                               "QPushButton:hover{border-image: url(:/mainpicture/qunchat_hover.png);background-image: url(:/mainpicture/kb.png);}"
+                              );
+    ui->addchat->setMouseTracking(true);
+    ui->addchat->setStyleSheet("QPushButton{border-image: url(:/mainpicture/addchat_normal.png);background-image: url(:/mainpicture/kb.png);}"
+                               "QPushButton:hover{border-image: url(:/mainpicture/addchat_hover.png);background-image: url(:/mainpicture/kb.png);}"
+                              );
+
     //设置加好友输入框不显示
     flag = false;
     ui->Edit_FriendAccount->setVisible(flag);
     ui->Button_queryFriend->setVisible(flag);
+    ui->startadd->setVisible(false);
+    ui->chatlabel->setVisible(false);
+    ui->qunchatlabel->setVisible(false);
+    ui->addchatlabel->setVisible(false);
+    ui->addtreeWidget->setVisible(false);
+    ui->quntreeWidget->setVisible(false);
 
     tcplink->initasServer();
+    // 连接好友状态改变信号与好友列表刷新槽
+    connect(tcplink, SIGNAL(friendstatusChangedSignal()), this, SLOT(refresh()));
     QAppWindow::initStatus();   // 初始状态设置
 
     //监听初始化
@@ -89,16 +110,22 @@ QAppWindow::QAppWindow(QWidget *parent) :
     //建treewidget
     build_tree();
     clicked_item = ui->treeWidget->topLevelItem(0);
+
     //treewidget边框隐藏
     ui->treeWidget->setFrameStyle(QFrame::NoFrame);
+    ui->addtreeWidget->setFrameStyle(QFrame::NoFrame);
+    ui->quntreeWidget->setFrameStyle(QFrame::NoFrame);
+
     //双击点击treewidget节点
     connect(ui->treeWidget,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,SLOT(showSelectedImage(QTreeWidgetItem*,int)));
     //connect(ui->treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),this,SLOT(ItemClicked(QTreeWidgetItem*,int)));
+
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(refresh()));
     timer->start(500);
 
 }
+
 
 QAppWindow::~QAppWindow()
 {
@@ -291,7 +318,9 @@ void QAppWindow::newReply(qint32 replyKind)
 {
     QMessageBox friendMsgBox;
     chatWindow *chat;
+    friendinfo *info;
     int friendNumber;
+    QStringList accountList;
     QVector<int> friendNo;
     int chatNumber;
 
@@ -395,34 +424,73 @@ void QAppWindow::newReply(qint32 replyKind)
     case CONNECT_SUCCESS:
 
         break;
-
-    /** 好友请求 */
-    case ADDFRIEND_REQUEST:
-        switch (QMessageBox::information(this,tr("好友请求"), tr("用户")+tcplink->friendInfo.account+tr("请求加为好友？\n是否加为好友"), "加为好友(&A)", "取消(&C)", 0)) {
-        case 0:  // 加为好友 - 默认
-            tcplink->friendInfo.tcpSocket->write(tr("ADD").toStdString().c_str());       // 发送接收好友请求
-            if(-1 == tcplink->findAccount(tcplink->friendInfo.account))
-            {
-                tcplink->friendVect.push_back(tcplink->friendInfo);  // 添加好友
-                tcplink->databaseInsert(tcplink->friendInfo);   // 同时更新好友数据库
-            }
- //           friendInfo = new
-            /** 显示在主界面窗口上 */
-            friendNumber = tcplink->findAccount(tcplink->friendInfo.account);
-            friendNo.clear();
-            friendNo.push_back(friendNumber);
-            tcplink->friendVect[friendNumber].tcpSocket = tcplink->friendInfo.tcpSocket;
-            tcplink->friendVect[friendNumber].isConnected = tcplink->friendInfo.isConnected;
-            tcplink->friendVect[friendNumber].node.hostAddr = tcplink->friendInfo.node.hostAddr;
-
-            chat = new chatWindow(friendNo);       // 成功添加好友，打开聊天窗口
+    /** 群聊请求 */
+    case GROUPCHAT_REQUEST:
+        accountList = tcplink->groupString.split("_");      // 按 "_" 截取好友
+//        friendInfo.account = accountList[0];         // 发起请求的是第一个好友
+        friendNo.clear();
+        for(int i = 0; i < accountList.size(); i++)
+        {
+            friendNo.push_back(tcplink->findAccount(accountList[i]));
+        }
+        // 打开群聊窗口
+        chatNumber = findChatWindow(friendNo);
+        if(-1 == chatNumber)    // 没有该窗口
+        {
+            chat = new chatWindow(friendNo, false);       // 成功添加好友，打开聊天窗口，不是群聊的发起者
             // 设置单人聊天窗口为相应的头像和账号，可在 chatWindow 中实现
             // TODO：头像
             chat->setWindowTitle(tcplink->friendInfo.account);   // 账号
             connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
             chat->show();
             emit this->FriendInfoSignal(tcplink->friendInfo);
+            chatVect.push_back(chat);
 //            replyKind = ADDFRIEND_SUCCESS;   // 成功添加好友
+        }
+        else
+        {
+            chatVect[chatNumber]->initSocket();  // 重新检查在线状态
+            chatVect[chatNumber]->show();    // 有的话直接打开该窗口继续聊天
+        }
+        ///
+        ///
+        ///
+        ///
+        break;
+
+    /** 好友请求 */
+    case ADDFRIEND_REQUEST:
+        switch (QMessageBox::information(this,tr("好友请求"), tr("用户")+tcplink->friendInfo.account+tr("请求加为好友？\n是否加为好友"), "加为好友(&A)", "取消(&C)", 0)) {
+        case 0:  // 加为好友 - 默认
+            tcplink->friendInfo.tcpSocket->write(tr("ADD").toStdString().c_str());       // 发送接收好友请求
+
+            // 成功添加好友，打开完善好友信息窗口
+            info = new friendinfo(NULL);
+            connect(info, SIGNAL(addfriendinfoSignal()), this, SLOT(addfriendinfo()));      // 连接成功添加好友信号槽
+            info->show();
+
+//            if(-1 == tcplink->findAccount(tcplink->friendInfo.account))
+//            {
+//                tcplink->friendVect.push_back(tcplink->friendInfo);  // 添加好友
+//                tcplink->databaseInsert(tcplink->friendInfo);   // 同时更新好友数据库
+//            }
+// //           friendInfo = new
+//            /** 显示在主界面窗口上 */
+//            friendNumber = tcplink->findAccount(tcplink->friendInfo.account);
+//            friendNo.clear();
+//            friendNo.push_back(friendNumber);
+//            tcplink->friendVect[friendNumber].tcpSocket = tcplink->friendInfo.tcpSocket;
+//            tcplink->friendVect[friendNumber].isConnected = tcplink->friendInfo.isConnected;
+//            tcplink->friendVect[friendNumber].node.hostAddr = tcplink->friendInfo.node.hostAddr;
+
+//            chat = new chatWindow(friendNo);       // 成功添加好友，打开聊天窗口
+//            // 设置单人聊天窗口为相应的头像和账号，可在 chatWindow 中实现
+//            // TODO：头像
+//            chat->setWindowTitle(tcplink->friendInfo.account);   // 账号
+//            connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
+//            chat->show();
+//            emit this->FriendInfoSignal(tcplink->friendInfo);
+////            replyKind = ADDFRIEND_SUCCESS;   // 成功添加好友
             break;
         case 1:
             tcplink->friendInfo.tcpSocket->write(tr("CANCEL").toStdString().c_str());    // 发送取消好友请求
@@ -435,25 +503,29 @@ void QAppWindow::newReply(qint32 replyKind)
     case ADDFRIEND_SUCCESS: // 成功添加好友
 //        tcplink->friendVect.push_back(tcplink->friendInfo);
 //        tcplink->databaseInsert(tcplink->friendInfo);
-        if(-1 == tcplink->findAccount(tcplink->friendInfo.account))
-        {
-            tcplink->friendVect.push_back(tcplink->friendInfo);  // 添加好友
-            tcplink->databaseInsert(tcplink->friendInfo);   // 同时更新好友数据库
-        }
-//           friendInfo = new
-        /** 显示在主界面窗口上 */
-        friendNumber = tcplink->findAccount(tcplink->friendInfo.account);
-        friendNo.clear();
-        friendNo.push_back(friendNumber);
-        tcplink->friendVect[friendNumber].tcpSocket = tcplink->friendInfo.tcpSocket;
-        tcplink->friendVect[friendNumber].isConnected = tcplink->friendInfo.isConnected;
-        tcplink->friendVect[friendNumber].node.hostAddr = tcplink->friendInfo.node.hostAddr;
+        // 成功添加好友，打开完善好友信息窗口
+        info = new friendinfo(NULL);
+        connect(info, SIGNAL(addfriendinfoSignal()), this, SLOT(addfriendinfo()));      // 连接成功添加好友信号槽
+        info->show();
+//        if(-1 == tcplink->findAccount(tcplink->friendInfo.account))
+//        {
+//            tcplink->friendVect.push_back(tcplink->friendInfo);  // 添加好友
+//            tcplink->databaseInsert(tcplink->friendInfo);   // 同时更新好友数据库
+//        }
+////           friendInfo = new
+//        /** 显示在主界面窗口上 */
+//        friendNumber = tcplink->findAccount(tcplink->friendInfo.account);
+//        friendNo.clear();
+//        friendNo.push_back(friendNumber);
+//        tcplink->friendVect[friendNumber].tcpSocket = tcplink->friendInfo.tcpSocket;
+//        tcplink->friendVect[friendNumber].isConnected = tcplink->friendInfo.isConnected;
+//        tcplink->friendVect[friendNumber].node.hostAddr = tcplink->friendInfo.node.hostAddr;
 
-        chat =new chatWindow(friendNo);
-        chat->setWindowTitle(tcplink->friendInfo.account);
-        connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
-        chat->show();
-        emit this->FriendInfoSignal(tcplink->friendInfo);
+//        chat =new chatWindow(friendNo);
+//        chat->setWindowTitle(tcplink->friendInfo.account);
+//        connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
+//        chat->show();
+//        emit this->FriendInfoSignal(tcplink->friendInfo);
         break;
     case ADDFRIEND_DENY:    // 好友拒绝添加好友请求
         qDebug() << "用户" << tcplink->friendInfo.account << "拒绝添加好友请求TAT";
@@ -532,6 +604,12 @@ void QAppWindow::newReply(qint32 replyKind)
     default:
         break;
     }
+}
+// 处理成功添加好友槽
+void QAppWindow::addfriendinfo()
+{
+    QAppWindow::build_tree();   // 更新好友列表
+    QAppWindow::refresh();      // 刷新好友列表状态
 }
 
 // 查找好友请求
@@ -734,6 +812,13 @@ void QAppWindow::showSelectedImage(QTreeWidgetItem *item, int column)
 
     //开始聊天
     // TODO: 重写开始聊天
+    tcplink->friendInfo.account = student_ID;
+    // 确定好友在线，发出聊天请求
+    if(ONLINE == tcplink->confirmFriendOnline(student_ID))
+    {
+         tcplink->startChatRequest();    // 发出聊天请求
+         qDebug() << "start chat with " << student_ID;
+    }
     ///
     ///
     ///
@@ -810,31 +895,218 @@ void QAppWindow::onDeleFriend()
 
 //在treewidget里点击鼠标刷新好友列表
 void QAppWindow::refresh()
-//void QAppWindow::on_treeWidget_clicked(const QModelIndex &index)
 {
-   // ui->treeWidget->takeTopLevelItem();
-
-    while (ui->treeWidget->topLevelItemCount() > 0 )
+    for(int i = 0; i< ui->treeWidget->topLevelItemCount();i++)
     {
-        //qDebug("%d",ui->treeWidget->topLevelItemCount());
-        QTreeWidgetItem *parent = ui->treeWidget->takeTopLevelItem(0);
-        parent->takeChildren ();
-        //释放掉存放节点的内存空间
-        int childCount=parent->childCount();//子节点数
-        for (int i=0;i<childCount;i++)
+        QTreeWidgetItem *topitem = ui->treeWidget->topLevelItem(i);
+        for(int j = 0; j< topitem->childCount();j++)
         {
-            QTreeWidgetItem* item = parent->child(0);
-            delete item;
-            item=NULL;
+            QTreeWidgetItem *frienditem= topitem->child(j);
+            QVariant sid_v = frienditem->data(0,Qt::UserRole);
+            QString sid_s = sid_v.toString();
+            QSqlQuery fri;
+            fri.exec("select * from friends");      // 指定查找数据库中的friends表
+            while(fri.next())
+            {
+                if(fri.value(1).toString() == sid_s)
+                {
+                    if(fri.value(5).toInt()==1)
+                        frienditem->setIcon(0,QIcon(fri.value(3).toString()));//在线头像
+                    if(fri.value(5).toInt()==0)
+                        frienditem->setIcon(0,QIcon(fri.value(8).toString()));//不在线头像
+                }
+            }
         }
-        delete parent;
-        parent=NULL;
     }
-    build_tree();
-    //qDebug("success") ;
+
+//    while (ui->treeWidget->topLevelItemCount() > 0 )
+//    {
+//        //qDebug("%d",ui->treeWidget->topLevelItemCount());
+//        QTreeWidgetItem *parent = ui->treeWidget->takeTopLevelItem(0);
+//        parent->takeChildren ();
+//        //释放掉存放节点的内存空间
+//        int childCount=parent->childCount();//子节点数
+//        for (int i=0;i<childCount;i++)
+//        {
+//            QTreeWidgetItem* item = parent->child(0);
+//            delete item;
+//            item=NULL;
+//        }
+//        delete parent;
+//        parent=NULL;
+//    }
+//    build_tree();
 }
 
 void QAppWindow::on_OkPushButton_clicked()
 {
     ReceiveDialog->close();
+}
+
+
+//点击“我的好友”
+void QAppWindow::on_chat_clicked()
+{
+    ui->startadd->setVisible(false);
+    ui->chatlabel->setVisible(true);
+    ui->qunchatlabel->setVisible(false);
+    ui->addchatlabel->setVisible(false);
+    ui->treeWidget->setVisible(true);
+    ui->addtreeWidget->setVisible(false);
+    ui->quntreeWidget->setVisible(false);
+
+    while (ui->treeWidget->topLevelItemCount() > 0 )
+    {
+       //qDebug("%d",ui->treeWidget->topLevelItemCount());
+       QTreeWidgetItem *parent = ui->treeWidget->takeTopLevelItem(0);
+       parent->takeChildren ();
+       //释放掉存放节点的内存空间
+       int childCount=parent->childCount();//子节点数
+       for (int i=0;i<childCount;i++)
+       {
+           QTreeWidgetItem* item = parent->child(0);
+           delete item;
+           item=NULL;
+       }
+       delete parent;
+       parent=NULL;
+    }
+    build_tree();
+}
+
+
+//点击“我的群聊”
+void QAppWindow::on_qunchat_clicked()
+{
+    ui->startadd->setVisible(false);
+    ui->chatlabel->setVisible(false);
+    ui->qunchatlabel->setVisible(true);
+    ui->addchatlabel->setVisible(false);
+    ui->treeWidget->setVisible(false);
+    ui->addtreeWidget->setVisible(false);
+    ui->quntreeWidget->setVisible(true);
+
+    ui->quntreeWidget->setStyleSheet("QTreeWidget::item{height:40px}");
+    ui->quntreeWidget->setIconSize(QSize(40,40));
+
+    //清除原节点
+    while (ui->quntreeWidget->topLevelItemCount() > 0 )
+    {
+       //qDebug("%d",ui->treeWidget->topLevelItemCount());
+       QTreeWidgetItem *item = ui->quntreeWidget->takeTopLevelItem(0);
+       delete item;
+       item=NULL;
+    }
+
+    QSqlQuery p;
+    p.exec("select * from blocks");
+    QTreeWidgetItem * qunchat[50];
+    int i = 0;
+    while(p.next())
+    {
+        QString member = p.value(2).toString(); //读群聊名
+        qunchat[i] = new QTreeWidgetItem(ui->quntreeWidget,QStringList(member));//建组名的父节点
+        qunchat[i]->setIcon(0,QIcon(":/mainpicture/group.ico"));
+        i++;
+    }
+    ui->quntreeWidget->expandAll(); //结点全部展开
+}
+
+
+
+//点击“添加群聊”
+void QAppWindow::on_addchat_clicked()
+{
+    ui->startadd->setVisible(true);
+    ui->chatlabel->setVisible(false);
+    ui->qunchatlabel->setVisible(false);
+    ui->addchatlabel->setVisible(true);
+    ui->treeWidget->setVisible(false);
+    ui->addtreeWidget->setVisible(true);
+    ui->quntreeWidget->setVisible(false);
+
+    ui->addtreeWidget->setStyleSheet("QTreeWidget::item{height:40px}");
+    ui->addtreeWidget->setIconSize(QSize(40,40));
+
+    //清除原节点
+    while (ui->addtreeWidget->topLevelItemCount() > 0 )
+    {
+       //qDebug("%d",ui->treeWidget->topLevelItemCount());
+       QTreeWidgetItem *item = ui->addtreeWidget->takeTopLevelItem(0);
+       delete item;
+       item=NULL;
+    }
+
+    QSqlQuery p;
+    p.exec("select * from friends");      // 指定查找数据库中的groups表
+    QTreeWidgetItem * addchat[50];
+    int i = 0;
+    while(p.next())
+    {
+        // 注意：群聊窗口里不要显示自己啊
+        if(p.value(1).toString() == tcplink->loginInfo.account) // 群聊窗口不显示自己
+            continue;
+        QString name = p.value(2).toString(); //读名字
+        QString member = p.value(1).toString(); //读学号
+        //qDebug()<<groupname<<member;
+
+        addchat[i] = new QTreeWidgetItem(ui->addtreeWidget,QStringList(name));//建组名的父节点
+        addchat[i]->setFlags(Qt::ItemIsSelectable | Qt::ItemIsUserCheckable |Qt::ItemIsEnabled);
+        addchat[i]->setCheckState(0, Qt::Unchecked);
+        addchat[i]->setData(0,Qt::UserRole,member);
+        addchat[i]->setIcon(0,QIcon(p.value(3).toString()));
+        i++;
+    }
+    ui->addtreeWidget->expandAll(); //结点全部展开
+}
+
+
+//开始群聊
+void QAppWindow::on_startadd_clicked()
+{
+    QString s;
+    QVector<int> friendNo;
+    QString selected;
+    int chatNumber;
+    for(int i = 0; i<ui->addtreeWidget->topLevelItemCount();i++)
+    {
+        QTreeWidgetItem* item = ui->addtreeWidget->topLevelItem(i);
+        if(item->checkState(0)== Qt::Checked)
+        {
+            selected = (item->data(0,Qt::UserRole)).toString();
+            s = s + selected + ",";
+            friendNo.append(tcplink->findAccount(selected));
+        }
+    }
+    qDebug()<<s;
+    QSqlQuery p;
+    // 检查是否已经存在这组群聊信息
+    p.exec("insert into blocks(members) values('"+s+"')");      // 注意同时更新群聊窗口（是否已经存在该群聊）
+
+    //打开群聊窗口chatwindow
+    tcplink->startChatRequest();
+    // 打开群聊窗口
+    chatNumber = findChatWindow(friendNo);
+    if(-1 == chatNumber)    // 没有该窗口
+    {
+        chatWindow *chat;
+        chat = new chatWindow(friendNo, true);       // 发起群聊，打开聊天窗口，是群聊的发起者
+        // 设置单人聊天窗口为相应的头像和账号，可在 chatWindow 中实现
+        // TODO：头像
+        chat->setWindowTitle(tcplink->friendInfo.account);   // 账号
+        connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
+        chat->show();
+        emit this->FriendInfoSignal(tcplink->friendInfo);
+        chatVect.push_back(chat);
+//            replyKind = ADDFRIEND_SUCCESS;   // 成功添加好友
+    }
+    else
+    {
+        chatVect[chatNumber]->initSocket();  // 重新检查在线状态
+        chatVect[chatNumber]->beStarter = false;    // 需要重新检查在线状态
+        chatVect[chatNumber]->show();    // 有的话直接打开该窗口继续聊天
+    }
+
+
+
 }

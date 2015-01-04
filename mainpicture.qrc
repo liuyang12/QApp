@@ -12,12 +12,18 @@
         <file>mainpicture/qunchat_hover.png</file>
         <file>mainpicture/qunchat_normal.png</file>
         <file>mainpicture/tx1.jpg</file>
-        <file>mainpicture/tx2.jpg</file>
         <file>mainpicture/kb.png</file>
         <file>mainpicture/white.jpg</file>
         <file>mainpicture/tx3.jpg</file>
         <file>mainpicture/tx4.jpg</file>
         <file>mainpicture/_tx.jpg</file>
         <file>mainpicture/_tx0.jpg</file>
+        <file>mainpicture/_tx1.jpg</file>
+        <file>mainpicture/_tx3.jpg</file>
+        <file>mainpicture/_tx4.jpg</file>
+        <file>mainpicture/_tx6.jpg</file>
+        <file>mainpicture/tx6.jpg</file>
+        <file>mainpicture/tx.jpg</file>
+        <file>mainpicture/group.ico</file>
     </qresource>
 </RCC>

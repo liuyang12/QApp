@@ -20,5 +20,6 @@
         <file>picture/setting_hover.png</file>
         <file>picture/setting_normal.png</file>
         <file>picture/yellow.jpg</file>
+        <file>picture/qq.png</file>
     </qresource>
 </RCC>

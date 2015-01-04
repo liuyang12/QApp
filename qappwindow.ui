@@ -16,6 +16,10 @@
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="picture.qrc">
+    <normaloff>:/picture/qq.png</normaloff>:/picture/qq.png</iconset>
+  </property>
   <property name="styleSheet">
    <string notr="true">background-image: url(:/mainpicture/white.jpg);</string>
   </property>
@@ -108,8 +112,7 @@ border-image: url(:/picture/kb.png);</string>
      <enum>Qt::CustomContextMenu</enum>
     </property>
     <property name="styleSheet">
-     <string notr="true">
-border-image: url(:/picture/white.jpg);</string>
+     <string notr="true">border-image: url(:/mainpicture/white.jpg);</string>
     </property>
     <property name="showDropIndicator" stdset="0">
      <bool>true</bool>
@@ -156,12 +159,12 @@ border-image: url(:/picture/kb.png);</string>
      <rect>
       <x>20</x>
       <y>30</y>
-      <width>71</width>
-      <height>71</height>
+      <width>61</width>
+      <height>61</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">border-image: url(:/mainpicture/tx2.jpg);</string>
+     <string notr="true">border-image: url(:/mainpicture/tx.jpg);</string>
     </property>
     <property name="text">
      <string/>
@@ -228,11 +231,17 @@ border-image: url(:/mainpicture/addfriend_normal.png);</string>
    <widget class="QPushButton" name="chat">
     <property name="geometry">
      <rect>
-      <x>20</x>
+      <x>30</x>
       <y>140</y>
       <width>31</width>
       <height>31</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>11</pointsize>
+     </font>
     </property>
     <property name="styleSheet">
      <string notr="true">background-image: url(:/mainpicture/kb.png);
@@ -248,7 +257,7 @@ border-image: url(:/mainpicture/chat_normal.png);</string>
    <widget class="QPushButton" name="qunchat">
     <property name="geometry">
      <rect>
-      <x>120</x>
+      <x>130</x>
       <y>140</y>
       <width>31</width>
       <height>31</height>
@@ -265,7 +274,7 @@ border-image: url(:/mainpicture/qunchat_normal.png);</string>
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="addchat">
     <property name="geometry">
      <rect>
       <x>220</x>
@@ -285,6 +294,143 @@ border-image: url(:/mainpicture/addchat_normal.png);</string>
      <bool>true</bool>
     </property>
    </widget>
+   <widget class="QLabel" name="chatlabel">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>170</y>
+      <width>61</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(11, 137, 255);</string>
+    </property>
+    <property name="text">
+     <string> 我的好友</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="qunchatlabel">
+    <property name="geometry">
+     <rect>
+      <x>120</x>
+      <y>170</y>
+      <width>61</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(11, 137, 255);</string>
+    </property>
+    <property name="text">
+     <string>我的群聊</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="addchatlabel">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>170</y>
+      <width>54</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(11, 137, 255);</string>
+    </property>
+    <property name="text">
+     <string>添加群聊</string>
+    </property>
+   </widget>
+   <widget class="QTreeWidget" name="addtreeWidget">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>250</y>
+      <width>241</width>
+      <height>271</height>
+     </rect>
+    </property>
+    <attribute name="headerVisible">
+     <bool>false</bool>
+    </attribute>
+    <column>
+     <property name="text">
+      <string notr="true">1</string>
+     </property>
+    </column>
+   </widget>
+   <widget class="QPushButton" name="startadd">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>200</y>
+      <width>91</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <property name="text">
+     <string>开始群聊</string>
+    </property>
+    <property name="icon">
+     <iconset resource="friendinfo.qrc">
+      <normaloff>:/friendinfo/success.png</normaloff>:/friendinfo/success.png</iconset>
+    </property>
+    <property name="flat">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QTreeWidget" name="quntreeWidget">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>220</y>
+      <width>241</width>
+      <height>251</height>
+     </rect>
+    </property>
+    <attribute name="headerVisible">
+     <bool>false</bool>
+    </attribute>
+    <column>
+     <property name="text">
+      <string notr="true">1</string>
+     </property>
+    </column>
+   </widget>
    <zorder>bj</zorder>
    <zorder>closeButton</zorder>
    <zorder>qappminButton</zorder>
@@ -296,7 +442,13 @@ border-image: url(:/mainpicture/addchat_normal.png);</string>
    <zorder>addfriend</zorder>
    <zorder>chat</zorder>
    <zorder>qunchat</zorder>
-   <zorder>pushButton</zorder>
+   <zorder>addchat</zorder>
+   <zorder>chatlabel</zorder>
+   <zorder>qunchatlabel</zorder>
+   <zorder>addchatlabel</zorder>
+   <zorder>addtreeWidget</zorder>
+   <zorder>quntreeWidget</zorder>
+   <zorder>startadd</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_Logout">
@@ -309,6 +461,9 @@ border-image: url(:/mainpicture/addchat_normal.png);</string>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="friendinfo.qrc"/>
+  <include location="picture.qrc"/>
+ </resources>
  <connections/>
 </ui>

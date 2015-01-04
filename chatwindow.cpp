@@ -3,12 +3,14 @@
 #include <QDateTime>
 #include "tcplink.h"
 #include <algorithm>
+#include <QIcon>
 
 extern TCPLink *tcplink;           // tcplink 全局变量
 
-chatWindow::chatWindow(QVector<int> frNo, QWidget *parent):
+chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
     QDialog(parent),
     friendNo(frNo),     // 传递参与聊天的所有好友的序号列表
+    beStarter(beStarter),       // 群聊发起者，默认不是，单人聊天也默认不是群聊的发起者
     ui(new Ui::chatWindow)
 {
     ui->setupUi(this);
@@ -71,6 +73,35 @@ chatWindow::chatWindow(QVector<int> frNo, QWidget *parent):
     ui->openFileButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/chatwindow/file.png);}"
                                       "QPushButton:hover{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/chatwindow/file_hover.png);}"
                                       );
+    ui->fontButton->setMouseTracking(true);
+    ui->fontButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/kb.png);}"
+                                  "QPushButton:hover{background-image: url(:/chatwindow/lessbule.jpg);border-image: url(:/mainpicture/lessbule.png);}"
+                                 );
+    ui->closeButton->setMouseTracking(true);
+    ui->closeButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/deepbule.png);color: rgb(255, 255, 255);}"
+                                   "QPushButton:hover{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/bule.png);color: rgb(255, 255, 255);}"
+                                  );
+    ui->sendFileButton->setMouseTracking(true);
+    ui->sendFileButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/deepbule.png);color: rgb(255, 255, 255);}"
+                                   "QPushButton:hover{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/bule.png);color: rgb(255, 255, 255);}"
+                                  );
+
+    /// 这个地方将图标设为好友的头像
+    /// TODO: 设置好友头像
+    //this->setWindowIcon(QIcon(":/mainpicture/tx1.jpg"));
+    if(friendNo.size() == 1)    // 单人聊天
+    {
+        // 设置为聊天的头像
+        this->setWindowIcon(QIcon(tcplink->friendVect[friendNo[0]].avatar));
+    }
+    else /* friendNo.size() > 1 */  // 群聊
+    {
+        // 设置为群聊 icon
+        this->setWindowIcon(QIcon(":/mainpicture/group.ico"));
+
+    }
+//    lastSpeaker = "";
+//    lastSpeakTime = QDateTime::currentDateTime();       // 获取当前时间
 
 }
 
@@ -143,14 +174,24 @@ void chatWindow::initSocket()
         // 每次打开聊天窗口确定所有好友的在线状态
         if(ONLINE == tcplink->confirmFriendOnline(tcplink->friendVect[friendNo[i]].account) || IPUPDATED == tcplink->confirmFriendOnline(tcplink->friendVect[friendNo[i]].account))  // 在线
         {
-            if(!tcplink->friendVect[friendNo[i]].isConnected)   // 如果还未连接则进行连接
+            if(beStarter) // 是群聊发起者，无需再建立连接，之前发出群聊请求已经建立该连接
             {
-                tcplink->friendInfo = tcplink->friendVect[friendNo[i]];
-                tcplink->connectRequest();
+
+            }
+            else    // 单独聊天或者不是群聊的发起者
+            {
+                if(!tcplink->friendVect[friendNo[i]].isConnected)   // 如果还未连接则进行连接
+                {
+                    tcplink->friendInfo = tcplink->friendVect[friendNo[i]];
+                    tcplink->connectRequest();
+                }
             }
 //            tcplink->requestKind = CONNECT;
 //            tcplink->newTCPConnection();    // 获取新的 TCPSocket 用于通信
             // 每次使用 tcpSocket 需要确保其在线
+            // 切断之前在 tcplink 中的连接
+            disconnect(tcplink->friendVect[friendNo[i]].tcpSocket, SIGNAL(readyRead()), tcplink, SLOT(recieveData()));
+            disconnect(tcplink->friendVect[friendNo[i]].tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), tcplink, SLOT(displayError(QAbstractSocket::SocketError)));
             // 连接所有在线好友的 TCPSocket
             connect(tcplink->friendVect[friendNo[i]].tcpSocket, SIGNAL(readyRead()), this, SLOT(readMessage()));        // 只要有可读消息，则读取所有好友的消息
             connect(tcplink->friendVect[friendNo[i]].tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displaySocketError(QAbstractSocket::SocketError)));
@@ -288,8 +329,17 @@ void chatWindow::appendShowLine(QString &account)
 {
     // 将接收到的信息显示在输出框
     QString datetime = getCurrentDateTime();
+    QString temp;
     /// todo 最前面加好友昵称
-    QString temp = QString("<font size=\"3\" color=blue>%1  (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[tcplink->findAccount(account)].name).arg(account).arg(datetime).arg(recieveString);
+    QDateTime current = QDateTime::currentDateTime();
+    if(lastSpeaker == tcplink->friendVect[0].name && lastSpeakTime.secsTo(current) < 60)  // 如果上一个说话者距离时间小于1min就不显示
+    {
+        temp = recieveString;
+    }
+    else
+    {
+        temp = QString("<font size=\"3\" color=blue>%1  (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[tcplink->findAccount(account)].name).arg(account).arg(datetime).arg(recieveString);
+    }
     ui->Show_message->append(temp); // 显示在输出框
 }
 
@@ -360,7 +410,7 @@ void chatWindow::displaySocketError(QAbstractSocket::SocketError socketError)
 QString chatWindow::getCurrentDateTime()
 {
      QDateTime datetime = QDateTime::currentDateTime();
-     return datetime.toString("yyyy/M/d h:m:s");   // 获取当前时间 格式如 2015/1/1 6:36:11
+     return datetime.toString("yyyy/M/d h:mm:ss");   // 获取当前时间 格式如 2015/1/1 6:36:11
 //    QTime time = QTime::currentTime();
 //    QDate date = QDate::currentDate();
 //    return QString("%1 %2").arg(date.toString(Qt::ISODate)).arg(time.toString(Qt::ISODate));
@@ -377,8 +427,16 @@ void chatWindow::on_sendMsgButton_clicked()
     ui->Edit_message->clear();  // 输入框清空
     QString datetime = getCurrentDateTime();
     /// todo 最前面加自己的昵称
-    sendString = QString("<font size=\"3\" color=green>%1  (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[0].name).arg(tcplink->loginInfo.account).arg(datetime).arg(tmpString);   // 转为 HTML 账号-时间-消息
-    ui->Show_message->append(sendString);   // 显示在输入窗口
+    QDateTime current = QDateTime::currentDateTime();
+    if(lastSpeaker == tcplink->friendVect[0].name && lastSpeakTime.secsTo(current) < 60)  // 如果上一个说话者距离时间小于1min就不显示
+    {
+        ui->Show_message->append(tmpString);   // 只显示消息
+    }
+    else
+    {
+        sendString = QString("<font size=\"3\" color=green>%1 (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[0].name).arg(tcplink->loginInfo.account).arg(datetime).arg(tmpString);   // 转为 HTML 账号-时间-消息
+        ui->Show_message->append(sendString);   // 显示在输入窗口
+    }
     // 发送消息
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
@@ -503,7 +561,6 @@ void chatWindow::readSpeech()
             return;
         qint64 length = TranSpeech.audio_in->bytesReady();
         TranSpeech.buffer_in->read(TranSpeech.SpeechBuffer_in->data(),length);
-        //自己的声音
         //TranSpeech.buffer_out->write(*TranSpeech.SpeechBuffer_in);
         if(TranSpeech.SpeechConnected)
             TranSpeech.SpeechSocket->write(*TranSpeech.SpeechBuffer_in);
