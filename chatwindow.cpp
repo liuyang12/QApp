@@ -472,10 +472,10 @@ void chatWindow::SpeechTransfer()
                 TranSpeech.SpeechConnected = 0;
                 break;
             default:
-                TranSpeech.SpeechConnected = 0;
+                break;
             }
         }
-        if(str == QString("SPEECH_ACCEPT"))
+        else if(str == QString("SPEECH_ACCEPT"))
         {
             TranSpeech.SpeechConnected = 2;
             ui->SpeechButton->setText(tr("关闭语音"));
@@ -503,6 +503,7 @@ void chatWindow::readSpeech()
             return;
         qint64 length = TranSpeech.audio_in->bytesReady();
         TranSpeech.buffer_in->read(TranSpeech.SpeechBuffer_in->data(),length);
+        //自己的声音
         //TranSpeech.buffer_out->write(*TranSpeech.SpeechBuffer_in);
         if(TranSpeech.SpeechConnected)
             TranSpeech.SpeechSocket->write(*TranSpeech.SpeechBuffer_in);
