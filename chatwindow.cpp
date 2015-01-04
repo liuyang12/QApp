@@ -17,8 +17,6 @@ chatWindow::chatWindow(QVector<int> frNo, QWidget *parent):
     tcpClient = new QTcpSocket(this);
     FileConnect = false;
     //建立发送文件的Socket
-    ui->sendFileButton->setEnabled(false);
-    //初始化发送文件不可用，需先打开文件
     ui->clientStatusLabel->setVisible(false);
     ui->clientProgressBar->setVisible(false);
     connect(tcpClient,SIGNAL(readyRead()),this,SLOT(StartTransmit()));
@@ -28,7 +26,31 @@ chatWindow::chatWindow(QVector<int> frNo, QWidget *parent):
     connect(tcpClient,SIGNAL(error(QAbstractSocket::SocketError)),this,
             SLOT(displayError(QAbstractSocket::SocketError)));
 
-    // 聊天窗口初始化
+    //语音传输初始化
+    TranSpeech.SpeechServer = new QTcpServer;               //语音监听
+    //TranSpeech.SpeechSocket = new QTcpSocket;             //语音连接
+    TranSpeech.SpeechConnected = 0;                         //初始化为无连接
+    TranSpeech.SpeechBuffer_in = new QByteArray(4096,0);    //语音输入缓存
+    TranSpeech.SpeechBuffer_out = new QByteArray(4096,0);   //语音输入缓存
+    TranSpeech.ad_format.setSampleRate(8000);               //语音格式
+    TranSpeech.ad_format.setChannelCount(1);                //------
+    TranSpeech.ad_format.setSampleSize(16);                 //------
+    TranSpeech.ad_format.setCodec("audio/pcm");             //------
+    TranSpeech.ad_format.setByteOrder(QAudioFormat::LittleEndian);
+    TranSpeech.ad_format.setSampleType(QAudioFormat::UnSignedInt);
+    QAudioDeviceInfo ad_info = QAudioDeviceInfo::defaultInputDevice();
+    if(!ad_info.isFormatSupported(TranSpeech.ad_format))
+        TranSpeech.ad_format = ad_info.nearestFormat(TranSpeech.ad_format);
+
+    TranSpeech.audio_in = new QAudioInput(TranSpeech.ad_format,this);
+    TranSpeech.audio_out = new QAudioOutput(TranSpeech.ad_format,this);
+
+    connect(TranSpeech.SpeechServer,SIGNAL(newConnection()),this,
+            SLOT(SpeechConnection()));            //开启语音监听,端口为学号后四位
+    TranSpeech.SpeechServer->listen(QHostAddress::Any,9999);//getPortNumber(friendInfo.account));
+
+
+    //聊天窗口初始化
     blockSize = 0;
     ui->Show_message->setReadOnly(true);    // 消息显示窗口只读
     ui->Edit_message->installEventFilter(this);
@@ -55,6 +77,11 @@ chatWindow::chatWindow(QVector<int> frNo, QWidget *parent):
 chatWindow::~chatWindow()
 {
     tcpClient->close();
+    delete TranSpeech.SpeechBuffer_in;
+    delete TranSpeech.SpeechBuffer_out;
+    delete TranSpeech.audio_in;
+    delete TranSpeech.audio_out;
+    delete TranSpeech.SpeechServer;
     delete ui;
 }
 //拖动窗口
@@ -152,30 +179,22 @@ void chatWindow::GetFriendInfo(FriendInfo info)
 //    initSocket();
 }
 
-//打开文件
+//打开并发送文件
 void chatWindow::on_openFileButton_clicked()
 {
     SendFile.EachSize = 4*1024;
     SendFile.FileName = QFileDialog::getOpenFileName(this);
     if(!SendFile.FileName.isEmpty())
     {
-        ui->sendFileButton->setEnabled(true);
         ui->clientStatusLabel->setVisible(true);
-        ui->clientStatusLabel->setText(tr("打开成功"));
+        ui->clientProgressBar->setVisible(true);
+        SendFile.FinishedBytes = 0;
+        FileConnect = false;
+        ui->clientStatusLabel->setText(tr("正在连接"));
+        tcpClient->connectToHost(friendInfo.node.hostAddr, /*getPortNumber(friendInfo.account)*/16666);
+        char *Mess = "TRANS";
+        tcpClient->write(Mess);
     }
-}
-
-//连接并发送文件
-void chatWindow::on_sendFileButton_clicked()
-{
-    ui->sendFileButton->setEnabled(false);
-    ui->clientProgressBar->setVisible(true);
-    SendFile.FinishedBytes = 0;
-    FileConnect = false;
-    ui->clientStatusLabel->setText(tr("正在连接"));
-    tcpClient->connectToHost(friendInfo.node.hostAddr, /*getPortNumber(friendInfo.account)*/16666);
-    char *Mess = "TRANS";
-    tcpClient->write(Mess);
 }
 
 void chatWindow::StartTransmit()
@@ -243,7 +262,6 @@ void chatWindow::displayError(QAbstractSocket::SocketError)
     tcpClient->close();
     ui->clientProgressBar->reset();
     ui->clientStatusLabel->setText(tr("传输异常"));
-    ui->sendFileButton->setEnabled(true);
 }
 // 连接成功，发送消息
 void chatWindow::sendMessage()
@@ -393,4 +411,111 @@ void chatWindow::on_closebutton_clicked()
 void chatWindow::on_minButton_clicked()
 {
     this->showMinimized();
+}
+
+void chatWindow::on_SpeechButton_clicked()
+{
+    if(!TranSpeech.SpeechConnected)
+    {
+        TranSpeech.SpeechConnected = 1;             //按下表示连接请求
+        TranSpeech.SpeechSocket = new QTcpSocket(this);
+        TranSpeech.SpeechSocket->connectToHost(friendInfo.node.hostAddr,9999);//getPortNumber(loginInfo.account));
+        connect(TranSpeech.SpeechSocket,SIGNAL(readyRead()),this,SLOT(SpeechTransfer()));
+        connect(TranSpeech.SpeechSocket,SIGNAL(disconnected()),this,SLOT(SpeechServerClose()));
+        char *tempMess = "SPEECH_REQUEST";
+        TranSpeech.SpeechSocket->write(tempMess);
+    }
+    else
+    {
+        TranSpeech.SpeechConnected = 0;             //连接状态按下则关闭
+        TranSpeech.SpeechSocket->disconnectFromHost();
+        ui->SpeechButton->setText(tr("开启语音"));
+        TranSpeech.audio_in->stop();
+        TranSpeech.audio_out->stop();
+    }
+}
+
+void chatWindow::SpeechConnection()
+{
+    if(!TranSpeech.SpeechConnected)
+    {
+        TranSpeech.SpeechConnected = 1;
+        TranSpeech.SpeechSocket = TranSpeech.SpeechServer->nextPendingConnection();
+        connect(TranSpeech.SpeechSocket,SIGNAL(readyRead()),this,SLOT(SpeechTransfer()));
+        connect(TranSpeech.SpeechSocket,SIGNAL(disconnected()),this,SLOT(SpeechServerClose()));
+    }
+}
+
+void chatWindow::SpeechTransfer()
+{
+    if(TranSpeech.SpeechConnected == 1)
+    {
+        QString str = TranSpeech.SpeechSocket->readAll();
+        if(str == QString("SPEECH_REQUEST"))
+        {
+            char *tempMess;
+            switch (QMessageBox::information(this,tr("语音通话请求"), tr("用户")+
+                    tcplink->friendInfo.account+tr("希望和你语音？\n是否开启语音"), "开启(&A)", "拒绝(&C)", 0))
+            {
+            case 0:
+                tempMess = "SPEECH_ACCEPT";
+                TranSpeech.SpeechSocket->write(tempMess);
+                TranSpeech.SpeechConnected = 2;
+                ui->SpeechButton->setText(tr("关闭语音"));
+                TranSpeech.buffer_in = TranSpeech.audio_in->start();
+                connect(TranSpeech.buffer_in,SIGNAL(readyRead()),this,SLOT(readSpeech()));
+                TranSpeech.buffer_out = TranSpeech.audio_out->start();
+                break;
+            case 1:
+                tempMess = "SPEECH_REFUSE";
+                TranSpeech.SpeechSocket->write(tempMess);
+                TranSpeech.SpeechConnected = 0;
+                break;
+            default:
+                TranSpeech.SpeechConnected = 0;
+            }
+        }
+        if(str == QString("SPEECH_ACCEPT"))
+        {
+            TranSpeech.SpeechConnected = 2;
+            ui->SpeechButton->setText(tr("关闭语音"));
+            TranSpeech.buffer_in = TranSpeech.audio_in->start();
+            connect(TranSpeech.buffer_in,SIGNAL(readyRead()),this,SLOT(readSpeech()));
+            TranSpeech.buffer_out = TranSpeech.audio_out->start();
+        }
+        else
+        {
+            TranSpeech.SpeechConnected = 0;
+        }
+    }
+    if(TranSpeech.SpeechConnected == 2)
+    {
+        *TranSpeech.SpeechBuffer_out = TranSpeech.SpeechSocket->readAll();
+        TranSpeech.buffer_out->write(*TranSpeech.SpeechBuffer_out);
+    }
+}
+
+void chatWindow::readSpeech()
+{
+    if(TranSpeech.SpeechConnected == 2)
+    {
+        if(!TranSpeech.audio_in)
+            return;
+        qint64 length = TranSpeech.audio_in->bytesReady();
+        TranSpeech.buffer_in->read(TranSpeech.SpeechBuffer_in->data(),length);
+        //TranSpeech.buffer_out->write(*TranSpeech.SpeechBuffer_in);
+        if(TranSpeech.SpeechConnected)
+            TranSpeech.SpeechSocket->write(*TranSpeech.SpeechBuffer_in);
+    }
+}
+
+void chatWindow::SpeechServerClose()
+{
+    if(TranSpeech.SpeechConnected)
+    {
+        TranSpeech.SpeechConnected = 0;
+        ui->SpeechButton->setText(tr("开启语音"));
+        TranSpeech.audio_in->stop();
+        TranSpeech.audio_out->stop();
+    }
 }

@@ -9,6 +9,8 @@
 #include <QDebug>   // Qt Debug
 #include <QtNetwork>
 #include <QFile>
+#include <QtMultimedia/QAudioInput>
+#include <QtMultimedia/QAudioOutput>
 //#include <QHostAddress>
 /// 服务器端 ServerNode 节点类
 enum STATUS{    // 状态
@@ -218,6 +220,21 @@ struct TSFile
         TodoBytes = 0;
         EachSize = 4*1024;
     }
+};
+
+//语音类
+struct Speech
+{
+    QTcpServer      *SpeechServer;              //监听语音请求
+    QTcpSocket      *SpeechSocket;              //语音传输Socket
+    QAudioInput     *audio_in;                  //Input
+    QAudioOutput    *audio_out;                 //Output
+    QIODevice       *buffer_in;                 //输入设备
+    QIODevice       *buffer_out;                //输出设备
+    QAudioFormat     ad_format;                 //格式
+    QByteArray      *SpeechBuffer_in;           //语音输入缓存区
+    QByteArray      *SpeechBuffer_out;          //语音输出缓存区
+    int             SpeechConnected;            //语音连接(0无连接1连接请求2已连接)
 };
 
 // 从账号中获取端口号

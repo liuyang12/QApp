@@ -25,9 +25,11 @@ public:
 private:
     Ui::chatWindow *ui;
 
-    QTcpSocket *tcpClient;
-    bool FileConnect;
-    TSFile SendFile;
+    QTcpSocket *tcpClient;  //传送文件Socket
+    bool FileConnect;       //传送文件链接确认
+    TSFile SendFile;        //文件信息
+
+    Speech TranSpeech;      //语音传输
 
     FriendInfo friendInfo;  //好友信息
     QString sendString;     // 发送消息字符串
@@ -52,11 +54,17 @@ private slots:
     void displaySocketError(QAbstractSocket::SocketError);  // 显示 Socket 错误信息
     void appendShowLine(QString &account);  // 更新显示窗口
     void on_openFileButton_clicked();
-    void on_sendFileButton_clicked();
     void on_sendMsgButton_clicked();
     void on_closebutton_clicked();
     void on_minButton_clicked();
 //    void on_comboBox_activated(int index);
+
+    void on_SpeechButton_clicked();
+
+    void SpeechConnection();                //语音连接
+    void SpeechTransfer();                  //语音传输
+    void readSpeech();                      //读取语音
+    void SpeechServerClose();               //关闭语音
 
 signals:
     void connectionFailedSignal();

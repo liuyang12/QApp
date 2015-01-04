@@ -123,7 +123,7 @@
   <widget class="QPushButton" name="openFileButton">
    <property name="geometry">
     <rect>
-     <x>180</x>
+     <x>160</x>
      <y>410</y>
      <width>31</width>
      <height>31</height>
@@ -137,7 +137,7 @@ border-image: url(:/chatwindow/file.png);</string>
     <string/>
    </property>
   </widget>
-  <widget class="QPushButton" name="sendFileButton">
+  <widget class="QPushButton" name="sendMsgButton">
    <property name="geometry">
     <rect>
      <x>340</x>
@@ -375,11 +375,24 @@ color: rgb(5, 42, 255);
     <string/>
    </property>
   </widget>
+  <widget class="QPushButton" name="SpeechButton">
+   <property name="geometry">
+    <rect>
+     <x>200</x>
+     <y>410</y>
+     <width>41</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>开启语音</string>
+   </property>
+  </widget>
   <zorder>label</zorder>
   <zorder>scrollArea</zorder>
   <zorder>scrollArea_2</zorder>
   <zorder>openFileButton</zorder>
-  <zorder>sendFileButton</zorder>
+  <zorder>sendMsgButton</zorder>
   <zorder>clientStatusLabel</zorder>
   <zorder>clientProgressBar</zorder>
   <zorder>closebutton</zorder>
@@ -390,6 +403,7 @@ color: rgb(5, 42, 255);
   <zorder>fontComboBox</zorder>
   <zorder>qxiu</zorder>
   <zorder>label_2</zorder>
+  <zorder>SpeechButton</zorder>
  </widget>
  <resources/>
  <connections/>
