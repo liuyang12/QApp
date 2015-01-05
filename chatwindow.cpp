@@ -70,20 +70,20 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
                                  "QPushButton:hover{border-image: url(:/mainpicture/kb.png);background-color: rgb(75, 162, 255);color: rgb(255, 255, 255);}"
                                  );
     ui->openFileButton->setMouseTracking(true);
-    ui->openFileButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/chatwindow/file.png);}"
+    ui->openFileButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/file.png);}"
                                       "QPushButton:hover{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/chatwindow/file_hover.png);}"
                                       );
     ui->fontButton->setMouseTracking(true);
-    ui->fontButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/kb.png);}"
+    ui->fontButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/mainpicture/kb.png);}"
                                   "QPushButton:hover{background-image: url(:/chatwindow/lessbule.jpg);border-image: url(:/mainpicture/lessbule.png);}"
                                  );
     ui->closeButton->setMouseTracking(true);
-    ui->closeButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/deepbule.png);color: rgb(255, 255, 255);}"
-                                   "QPushButton:hover{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/bule.png);color: rgb(255, 255, 255);}"
+    ui->closeButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/deepbule.jpg);color: rgb(255, 255, 255);}"
+                                   "QPushButton:hover{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/bule.jpg);color: rgb(255, 255, 255);}"
                                   );
-    ui->sendFileButton->setMouseTracking(true);
-    ui->sendFileButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/deepbule.png);color: rgb(255, 255, 255);}"
-                                   "QPushButton:hover{background-image: url(:/chatwindow/kb.jpg);border-image: url(:/mainpicture/bule.png);color: rgb(255, 255, 255);}"
+    ui->sendMsgButton->setMouseTracking(true);
+    ui->sendMsgButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/deepbule.jpg);color: rgb(255, 255, 255);}"
+                                   "QPushButton:hover{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/bule.jpg);color: rgb(255, 255, 255);}"
                                   );
 
     /// 这个地方将图标设为好友的头像

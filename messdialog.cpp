@@ -1,5 +1,8 @@
 #include "messdialog.h"
 #include "ui_messdialog.h"
+#include "tcplink.h"
+
+extern TCPLink *tcplink;           // tcplink 全局变量
 
 MessDialog::MessDialog(QWidget *parent) :
     QWidget(parent),
@@ -20,6 +23,7 @@ MessDialog::MessDialog(QWidget *parent) :
 
 MessDialog::~MessDialog()
 {
+    //TODO:彻底析构
     delete ui;
 }
 
@@ -80,14 +84,21 @@ void MessDialog::on_CloseButton_clicked()
 
 void MessDialog::on_WorkButton_clicked()
 {
-    //查看
+    if(FriendChat.status == ONLINE)
+    {
+        tcplink->friendInfo.account = FriendChat.account;
+        tcplink->friendInfo.node.hostAddr = FriendChat.node.hostAddr;
+        tcplink->startChatRequest();    // 发出聊天请求
+    }
 }
 
 //设置显示内容
-void MessDialog::SetMessage(QString Title,QString MainDoc,QString YesButton,QString NoButton)
+void MessDialog::SetMessage(QString Title, QString MainDoc, QString YesButton,
+                            QString NoButton, FriendInfo hostInfo)
 {
     ui->Title_label->setText(Title);
     ui->DocBrowser->setText(MainDoc);
     ui->WorkButton->setText(YesButton);
     ui->CloseButton->setText(NoButton);
+    FriendChat = hostInfo;
 }

@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTimer>
 #include <QDesktopWidget>
+#include "classConstant.h"
 
 namespace Ui {
 class MessDialog;
@@ -17,8 +18,8 @@ public:
     explicit MessDialog(QWidget *parent = 0);
     ~MessDialog();
 
-    void SetMessage(QString Title,QString MainDoc,
-                    QString YesButton,QString NoButton);
+    void SetMessage(QString Title, QString MainDoc,
+                    QString YesButton, QString NoButton, FriendInfo hostInfo);
     void DynamicShow();             //渐变显示
 
 private slots:
@@ -39,6 +40,8 @@ private:
 
     QPoint Location;
     QRect deskRect;
+
+    FriendInfo FriendChat;
 };
 
 #endif // MESSDIALOG_H

@@ -18,7 +18,8 @@ SOURCES += main.cpp\
     tcplink.cpp \
     qappwindow.cpp \
     chatwindow.cpp \
-    friendinfo.cpp
+    friendinfo.cpp \
+    messdialog.cpp
 
 HEADERS  += \
 	login.h \
@@ -26,13 +27,15 @@ HEADERS  += \
     tcplink.h \
     qappwindow.h \
     chatwindow.h \
-    friendinfo.h
+    friendinfo.h \
+    messdialog.h
 
 FORMS    += \
     login.ui \
     qappwindow.ui \
     chatwindow.ui \
-    friendinfo.ui
+    friendinfo.ui \
+    messdialog.ui
 
 RESOURCES += \
     picture.qrc \
