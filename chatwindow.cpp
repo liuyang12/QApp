@@ -93,11 +93,26 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
     {
         // 设置为聊天的头像
         this->setWindowIcon(QIcon(tcplink->friendVect[friendNo[0]].avatar));
+        ui->tx->setStyleSheet("border-image: url("+tcplink->friendVect[friendNo[0]].avatar+");"
+                "border-radius:8px;"
+                              );
+        ui->nickname->setText(tcplink->friendVect[friendNo[0]].name);
     }
     else /* friendNo.size() > 1 */  // 群聊
     {
         // 设置为群聊 icon
         this->setWindowIcon(QIcon(":/mainpicture/group.ico"));
+        ui->tx->setStyleSheet("border-image: url(:/mainpicture/group.ico);"
+                              "border-radius:8px;"
+                              );
+        QString group;
+        group = "";
+        for(int i = 0; i < friendNo.size(); i++)
+        {
+            group += tcplink->friendVect[friendNo[i]].name + "、";
+        }
+        group += tcplink->friendVect[0].name;
+        ui->nickname->setText(group);
 
     }
 //    lastSpeaker = "";

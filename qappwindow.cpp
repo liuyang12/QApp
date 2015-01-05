@@ -737,6 +737,7 @@ void QAppWindow::displayError(QAbstractSocket::SocketError) //错误处理
 
 void QAppWindow::on_closeButton_clicked()
 {
+//    this->hide();   // 隐藏而不是直接关闭
     this->close();
 }
 

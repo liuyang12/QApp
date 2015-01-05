@@ -187,6 +187,8 @@ void TCPLink::newTCPConnection()
         friendInfo.tcpSocket->abort();  // 解决为什么经常在这里出现 bug
         friendInfo.tcpSocket->connectToHost(friendInfo.node.hostAddr, getPortNumber(friendInfo.account) /*friendInfo.node.hostPort*/); // 连接到 待加好友服务器，IP地址为回复，端口号为好友账号后四位
         qDebug() << "connect to host: IP " << friendInfo.node.hostAddr << " port " << getPortNumber(friendInfo.account);
+        if(friendInfo.tcpSocket->waitForConnected(500)) // 等待 500ms发送请求
+            TCPLink::sendData();
 //        if(-1 == friendNumber)  // 还不是好友，需要接下来发送好友请求
 //        {
 //            return ;
@@ -287,7 +289,8 @@ void TCPLink::recieveData()
    qDebug() << Reply;
    if(Reply.left(10) == "groupchat_")       // 好友发出群聊请求
    {
-       groupString = Reply.remove(0, 9);  // 删除前十个字符 "groupchat_"
+       groupString = Reply.remove(0, 10);  // 删除前十个字符 "groupchat_"
+       qDebug() << groupString;
        if((groupString.size()+1) % 11 == 0)     // 如果长度+1是11的整数倍，那么有这么多好友，否则不是群聊
        {
            QStringList accountList;

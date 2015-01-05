@@ -58,8 +58,8 @@
     <widget class="QTextEdit" name="Show_message">
      <property name="geometry">
       <rect>
-       <x>1</x>
-       <y>1</y>
+       <x>0</x>
+       <y>0</y>
        <width>421</width>
        <height>321</height>
       </rect>
@@ -77,8 +77,8 @@
     <widget class="QPushButton" name="SpeechButton">
      <property name="geometry">
       <rect>
-       <x>344</x>
-       <y>298</y>
+       <x>350</x>
+       <y>300</y>
        <width>75</width>
        <height>23</height>
       </rect>
@@ -291,12 +291,12 @@ border-radius:8px;
     <number>-1</number>
    </property>
   </widget>
-  <widget class="QLabel" name="nikname">
+  <widget class="QLabel" name="nickname">
    <property name="geometry">
     <rect>
-     <x>90</x>
+     <x>80</x>
      <y>10</y>
-     <width>61</width>
+     <width>321</width>
      <height>21</height>
     </rect>
    </property>
@@ -493,7 +493,7 @@ border-radius:10px; </string>
   <zorder>clientProgressBar</zorder>
   <zorder>closebutton</zorder>
   <zorder>minButton</zorder>
-  <zorder>nikname</zorder>
+  <zorder>nickname</zorder>
   <zorder>fontButton</zorder>
   <zorder>fontComboBox</zorder>
   <zorder>qxiu</zorder>
