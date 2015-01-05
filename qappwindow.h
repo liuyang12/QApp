@@ -100,6 +100,8 @@ private slots:
 
 //    void ItemClicked(QTreeWidgetItem *item, int column);
     void refresh();
+//托盘处理槽函数
+    void MainIconClicked(QSystemTrayIcon::ActivationReason reason);
 
 private:
     Ui::QAppWindow *ui;
@@ -119,6 +121,8 @@ private:
     QProgressBar            *ServerProgressBar;
     QPushButton             *OkPushButton;
     QVBoxLayout             *pLayout;
+//托盘相关
+    QSystemTrayIcon *MainIcon;
 
 signals:
     void reLoginSignal(void);     // 重新登录请求

@@ -21,5 +21,6 @@
         <file>picture/setting_normal.png</file>
         <file>picture/yellow.jpg</file>
         <file>picture/qq.png</file>
+        <file>picture/Mushroomoffline.ico</file>
     </qresource>
 </RCC>

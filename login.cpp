@@ -90,6 +90,13 @@ login::login(QWidget *parent) :
     connect(tcplink, SIGNAL(connectionFailedSignal()), this, SLOT(initStatus()));
     connect(tcplink, SIGNAL(disconnectedSignal()), this, SLOT(serverDisconnected()));
 
+    loginIcon = new QSystemTrayIcon(this);
+    connect(loginIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,
+            SLOT(IconClicked(QSystemTrayIcon::ActivationReason)));
+    QIcon icon(":/picture/Mushroomoffline.ico");
+    loginIcon->setIcon(icon);
+    loginIcon->show();
+    loginIcon->showMessage(QString(tr("提示")),QString(tr("冒个泡")));
 }
 
 login::~login()
@@ -203,6 +210,7 @@ void login::on_buttonConfirm_clicked()
         tcplink->loginRequest(tcplink->loginInfo);
         setWindowTitle("logging in...");
         ui->buttonConfirm->setEnabled(false);
+        loginIcon->deleteLater();
     }
 }
 void login::newReply(qint32 replyKind)
@@ -255,6 +263,7 @@ void login::reLogin()
 void login::on_close_button_clicked()
 {
     ui->Button_ConfigServer->raise();
+    loginIcon->deleteLater();
     this->reject();
     this->close();
 }
@@ -273,5 +282,42 @@ void login::on_Button_ConfigServer_clicked()
 
 void login::on_minbutton_clicked()
 {
-    this->showMinimized();
+    //this->showMinimized();
+    this->hide();
+}
+
+//事件响应
+/*
+void login::changeEvent(QEvent *event)
+{
+    if((event->type() == QEvent::WindowStateChange) && this->isMinimized())
+    {
+
+    }
+}
+*/
+void login::IconClicked(QSystemTrayIcon::ActivationReason reason)
+{
+    switch (reason)
+    {
+    //单击
+    case QSystemTrayIcon::Trigger:
+    //双击
+    case QSystemTrayIcon::DoubleClick:
+        if(this->isHidden())
+        {
+            //恢复窗口显示
+            this->show();
+
+            this->setWindowState(Qt::WindowActive);
+            this->activateWindow();
+        }
+        else
+        {
+            this->hide();
+        }
+        break;
+    default:
+        break;
+    }
 }

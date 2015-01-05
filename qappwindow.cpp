@@ -124,6 +124,13 @@ QAppWindow::QAppWindow(QWidget *parent) :
     connect(timer, SIGNAL(timeout()), this, SLOT(refresh()));
     timer->start(500);
 
+    MainIcon = new QSystemTrayIcon(this);
+    connect(MainIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,
+            SLOT(MainIconClicked(QSystemTrayIcon::ActivationReason)));
+    QIcon icon(":/mainpicture/Mushroomonline.ico");
+    MainIcon->setIcon(icon);
+    MainIcon->show();
+    MainIcon->showMessage(QString(tr("提示")),QString(tr("登录成功")));
 }
 
 
@@ -735,7 +742,8 @@ void QAppWindow::on_closeButton_clicked()
 
 void QAppWindow::on_qappminButton_clicked()
 {
-    this->showMinimized();
+    //this->showMinimized();
+    this->hide();
 }
 
 void QAppWindow::on_addfriend_clicked()
@@ -1113,4 +1121,30 @@ void QAppWindow::on_startadd_clicked()
 
 
 
+}
+
+void QAppWindow::MainIconClicked(QSystemTrayIcon::ActivationReason reason)
+{
+    switch (reason)
+    {
+    //单击
+    case QSystemTrayIcon::Trigger:
+    //双击
+    case QSystemTrayIcon::DoubleClick:
+        if(this->isHidden())
+        {
+            //恢复窗口显示
+            this->show();
+
+            this->setWindowState(Qt::WindowActive);
+            this->activateWindow();
+        }
+        else
+        {
+            this->hide();
+        }
+        break;
+    default:
+        break;
+    }
 }

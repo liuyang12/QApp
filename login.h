@@ -72,11 +72,16 @@ private slots:
     void on_close_button_clicked();
 
     void on_minbutton_clicked();
+//托盘处理槽函数
+    void IconClicked(QSystemTrayIcon::ActivationReason reason);
+    //void changeEvent(QEvent *event);
 
 private:
     Ui::login *ui;
 //    qint16 blockSize;
 //    void newConnect(void);      // TCP初始化连接
+    QSystemTrayIcon *loginIcon;      //托盘相关
+
 signals:
     void loggedinSignal(void);      // 用户已经登录信号
     void disconnectedSignal(void);  // 服务器未连接
