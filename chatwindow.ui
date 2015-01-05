@@ -175,7 +175,7 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QPushButton" name="sendFileButton">
+  <widget class="QPushButton" name="sendMsgButton">
    <property name="geometry">
     <rect>
      <x>340</x>
@@ -489,7 +489,7 @@ border-radius:10px; </string>
   <zorder>scrollArea</zorder>
   <zorder>scrollArea_2</zorder>
   <zorder>openFileButton</zorder>
-  <zorder>sendFileButton</zorder>
+  <zorder>sendMsgButton</zorder>
   <zorder>clientProgressBar</zorder>
   <zorder>closebutton</zorder>
   <zorder>minButton</zorder>

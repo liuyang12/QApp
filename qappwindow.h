@@ -9,6 +9,7 @@
 #include "classConstant.h"
 
 #include "chatwindow.h" // 包含所有聊天窗口，并对所有聊天窗口进行管理
+#include "messdialog.h" // 包含右下角弹窗
 
 namespace Ui {
 class QAppWindow;
@@ -104,6 +105,8 @@ private slots:
 //托盘处理槽函数
     void MainIconClicked(QSystemTrayIcon::ActivationReason reason);
 
+    void RefreshFriendsStatus();                //通过服务器刷新好友状态的槽函数
+
 private:
     Ui::QAppWindow *ui;
 
@@ -112,7 +115,7 @@ private:
 
     QTcpServer *tcpServer;      // TCP Server
     QTcpSocket *tcpClient;      // TCP Socket
-//    QTimer *timer;              // 计时器
+    QTimer *RefreshTimer;              // 连接服务器查询并刷新好友状态的计时器
 ////    QTcpSocket *tcpSender;      // TCP Sender
 
 //    TCPLink *tcplink;
@@ -124,6 +127,8 @@ private:
     QVBoxLayout             *pLayout;
 //托盘相关
     QSystemTrayIcon *MainIcon;
+
+    MessDialog *MessBox;
 
 signals:
     void reLoginSignal(void);     // 重新登录请求

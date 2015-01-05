@@ -135,11 +135,18 @@ QAppWindow::QAppWindow(QWidget *parent) :
     MainIcon->setIcon(icon);
     MainIcon->show();
     MainIcon->showMessage(QString(tr("提示")),QString(tr("登录成功")));
+
+
+    //每隔一秒钟向服务器查询好友状态并更新
+    RefreshTimer = new QTimer(this);
+    connect(RefreshTimer,SIGNAL(timeout()),this,SLOT(RefreshFriendsStatus()));
+    RefreshTimer->start(10000);
 }
 
 
 QAppWindow::~QAppWindow()
 {
+    RefreshTimer->stop();
     tcpServer->close();
     delete ui;
 }
@@ -1231,5 +1238,34 @@ void QAppWindow::MainIconClicked(QSystemTrayIcon::ActivationReason reason)
         break;
     default:
         break;
+    }
+}
+
+void QAppWindow::RefreshFriendsStatus()
+{
+    for(int i = 1;i < tcplink->friendVect.size();i++)
+    {
+        FriendInfo TempFriend;
+        TempFriend.status = tcplink->friendVect[i].status;
+        TempFriend.account = tcplink->friendVect[i].account;
+        int FriendState = tcplink->confirmFriendOnline(TempFriend.account);
+        if(FriendState != TempFriend.status)
+        {
+            tcplink->friendVect[i].status = FriendState;
+            if(FriendState == ONLINE)
+            {
+                MessBox = new MessDialog();
+                MessBox->SetMessage(QString(tr("上线提醒")),QString(tr("您的好友\n")) + TempFriend.account + QString(tr("已上线")),
+                                    QString(tr("聊天")),QString(tr("忽略")),tcplink->friendVect[i]);
+                MessBox->show();
+            }
+            else if(FriendState == OFFLINE)
+            {
+                MessBox = new MessDialog();
+                MessBox->SetMessage(QString(tr("下线提醒")),QString(tr("您的好友\n")) + TempFriend.account + QString(tr("已下线")),
+                                    QString(tr("知道了")),QString(tr("忽略")),tcplink->friendVect[i]);
+                MessBox->show();
+            }
+        }
     }
 }
