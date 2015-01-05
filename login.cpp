@@ -210,7 +210,7 @@ void login::on_buttonConfirm_clicked()
         tcplink->loginRequest(tcplink->loginInfo);
         setWindowTitle("logging in...");
         ui->buttonConfirm->setEnabled(false);
-        loginIcon->deleteLater();
+        loginIcon->deleteLater();   // 此处可能会出 bug
     }
 }
 void login::newReply(qint32 replyKind)

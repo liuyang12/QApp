@@ -111,7 +111,12 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
         {
             group += tcplink->friendVect[friendNo[i]].name + "、";
         }
-        group += tcplink->friendVect[0].name;
+        if(beStarter)
+        {
+            group += tcplink->friendVect[0].name;
+        }
+        else
+            group.resize(group.size()-1);   //去掉最后一个字符串
         ui->nickname->setText(group);
 
     }

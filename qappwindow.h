@@ -79,6 +79,7 @@ private slots:
 //    void on_treeWidget_itemDoubleClicked(QTreeWidgetItem *item, int column);
 
     void showSelectedImage(QTreeWidgetItem * item, int column); //点击树节点事件
+    void groupchatDoubleClicked(QTreeWidgetItem *item, int column);      // 群聊树节点双击
 
     //右键菜单删除
     void on_treeWidget_customContextMenuRequested(const QPoint &pos);

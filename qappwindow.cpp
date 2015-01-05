@@ -106,6 +106,9 @@ QAppWindow::QAppWindow(QWidget *parent) :
     {
         qDebug() << tcplink->friendVect[i];
     }
+    // 设置自己的头像和昵称
+    ui->touxiang->setStyleSheet("border-image: url("+tcplink->friendVect[0].avatar+");");
+    ui->qname->setText(tcplink->friendVect[0].name);
 
     //建treewidget
     build_tree();
@@ -120,6 +123,7 @@ QAppWindow::QAppWindow(QWidget *parent) :
     connect(ui->treeWidget,SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)),this,SLOT(showSelectedImage(QTreeWidgetItem*,int)));
     //connect(ui->treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),this,SLOT(ItemClicked(QTreeWidgetItem*,int)));
 
+    connect(ui->quntreeWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), this, SLOT(groupchatDoubleClicked(QTreeWidgetItem*,int)));
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), this, SLOT(refresh()));
     timer->start(500);
@@ -1022,7 +1026,45 @@ void QAppWindow::on_qunchat_clicked()
     }
     ui->quntreeWidget->expandAll(); //结点全部展开
 }
+// 群聊树双击相应的节点，开始群聊
+void QAppWindow::groupchatDoubleClicked(QTreeWidgetItem *item, int column)
+{
+    // TODO：应该如何获取点击目标
+    QString groupStr =  item->text(column);
+    QStringList groupList = groupStr.split(' ');    // 空格分割
+    QVector<int > friendNo;
+    int chatNumber;
+    for(int i = 0; i < groupList.size(); i++)
+    {
+        if(groupList[i].size() == 10 && groupList[i] != tcplink->loginInfo.account)    // 是学号且不是自己
+            friendNo.push_back(tcplink->findAccount(groupList[i]));
+    }
+    //打开群聊窗口chatwindow
+    tcplink->startGroupChat(friendNo);
+    // 打开群聊窗口
+    chatNumber = findChatWindow(friendNo);
+    if(-1 == chatNumber)    // 没有该窗口
+    {
+        chatWindow *chat;
+        chat = new chatWindow(friendNo, true);       // 发起群聊，打开聊天窗口，是群聊的发起者
+        // 设置单人聊天窗口为相应的头像和账号，可在 chatWindow 中实现
+        // TODO：头像
+        chat->setWindowTitle(tcplink->friendInfo.account);   // 账号
+        connect(this,SIGNAL(FriendInfoSignal(FriendInfo)),chat,SLOT(GetFriendInfo(FriendInfo)));
+        chat->show();
+        emit this->FriendInfoSignal(tcplink->friendInfo);
+        chatVect.push_back(chat);
+//            replyKind = ADDFRIEND_SUCCESS;   // 成功添加好友
+    }
+    else
+    {
+        chatVect[chatNumber]->initSocket();  // 重新检查在线状态
+        chatVect[chatNumber]->beStarter = false;    // 需要重新检查在线状态
+        chatVect[chatNumber]->show();    // 有的话直接打开该窗口继续聊天
+    }
 
+
+}
 
 
 //点击“添加群聊”
@@ -1076,6 +1118,7 @@ void QAppWindow::on_addchat_clicked()
 void QAppWindow::on_startadd_clicked()
 {
     QString s;
+    QString groupname;
     QVector<int> friendNo;
     QString selected;
     int chatNumber;
@@ -1085,16 +1128,57 @@ void QAppWindow::on_startadd_clicked()
         if(item->checkState(0)== Qt::Checked)
         {
             selected = (item->data(0,Qt::UserRole)).toString();
-            s = s + selected + ",";
+            s = s + selected + " ";
             friendNo.append(tcplink->findAccount(selected));
+            groupname += tcplink->friendVect[tcplink->findAccount(selected)].name + "、";
         }
     }
+    groupname += tcplink->friendVect[0].name;
+    s += tcplink->friendVect[0].account;
     qDebug()<<s;
     if(friendNo.size() == 0)    // 一个也没选，不开启群聊
         return ;
-    QSqlQuery p;
+    if(friendNo.size() == 1)    // 只选择了一个人，发起单人聊天
+    {
+        // TODO： 是否有必要
+        // 非常有必要，不应该发起两个人的群聊
+        if(ONLINE == tcplink->confirmFriendOnline(tcplink->friendVect[friendNo[0]].account))    // 确定好友在线发出聊天请求
+        {
+            tcplink->friendInfo.account = tcplink->friendVect[friendNo[0]].account;
+            tcplink->friendInfo.node.hostAddr = tcplink->friendVect[friendNo[0]].node.hostAddr;
+            tcplink->startChatRequest();    // 发起聊天请求
+        }
+    }
     // 检查是否已经存在这组群聊信息
-    p.exec("insert into blocks(members) values('"+s+"')");      // 注意同时更新群聊窗口（是否已经存在该群聊）
+    // TODO：检查此时是否已经存在该群聊信息
+    QSqlQuery p;
+    p.exec("select * from blocks");
+    bool blockexist;    // 数据库中是否已经存在该分组
+    blockexist = false;
+    while(p.next())
+    {
+        QString members = p.value(2).toString();    // 好友的字符串
+        if(members.right(1) == " ") // 最后一个字符为 空格 " "则删除
+            members.resize(members.size()-1);
+        QStringList friendList = members.split(' ');    // 通过空格分割
+        QVector<int> tmpfriendNo;
+        for(int i = 0; i < friendList.size(); i++)
+        {
+            if(friendList[i].size() == 10 && friendList[i] != tcplink->loginInfo.account)  // 是学号且不是自己
+                tmpfriendNo.push_back(tcplink->findAccount(friendList[i]));
+        }
+        if(friendNoEqual(tmpfriendNo, friendNo))
+        {
+            blockexist = true;
+        }
+    }
+    if(!blockexist) // 如果数据库中不存在该分组增加该分组信息，已经存在则不更新
+    {
+        p.prepare("insert into blocks(name, members) values(:name, :members)");
+        p.bindValue(":name", groupname);
+        p.bindValue(":members", s);
+        p.exec();
+    }
 
     //打开群聊窗口chatwindow
     tcplink->startGroupChat(friendNo);
