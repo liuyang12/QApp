@@ -23,6 +23,7 @@ public:
     bool beStarter;         // 群聊的发起者
     QDateTime lastSpeakTime; // 上一个聊天时刻
     QString lastSpeaker;    // 上一个聊天者
+    QString nameString;     // 保存在 Record 文件夹下的名字
     QVector<int> friendNo;  // 聊天窗口中的所有好友的编号，通过这个与 friendVect[] 获取好友的TCPSocket 进而进行聊天，默认其中包含自己，但是不显式表示出来 friendNo[0] 是第一个好友的编号，而不是自己
     void initWindowHead(void );     // 设置窗口标题和头像
     void initSocket(void );     // 初始化 TCPSocket 通信
@@ -73,6 +74,13 @@ private slots:
     void SpeechTransfer();                  //语音传输
     void readSpeech();                      //读取语音
     void SpeechServerClose();               //关闭语音
+
+    // 消息记录
+    void appendRecord(QString &record);      // 添加消息记录
+
+    void on_clearTBtn_clicked();
+
+    void on_saveTBtn_clicked();
 
     void MediaOpen(int choice);             //开启语音&视频
 

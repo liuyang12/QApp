@@ -20,5 +20,7 @@
         <file>chatwindow/QX8.jpg</file>
         <file>chatwindow/lt.png</file>
         <file>chatwindow/font.png</file>
+        <file>chatwindow/clear.png</file>
+        <file>chatwindow/save.png</file>
     </qresource>
 </RCC>

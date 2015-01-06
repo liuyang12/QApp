@@ -156,9 +156,9 @@
   <widget class="QPushButton" name="openFileButton">
    <property name="geometry">
     <rect>
-     <x>197</x>
+     <x>202</x>
      <y>409</y>
-     <width>91</width>
+     <width>21</width>
      <height>21</height>
     </rect>
    </property>
@@ -172,7 +172,7 @@
 </string>
    </property>
    <property name="text">
-    <string>打开文件</string>
+    <string/>
    </property>
    <property name="icon">
     <iconset resource="chatwindow.qrc">
@@ -213,7 +213,7 @@ color: rgb(255, 255, 255);</string>
   <widget class="QProgressBar" name="clientProgressBar">
    <property name="geometry">
     <rect>
-     <x>284</x>
+     <x>230</x>
      <y>410</y>
      <width>101</width>
      <height>16</height>
@@ -435,27 +435,6 @@ border-radius:8px;
     <string/>
    </property>
   </widget>
-  <widget class="QLabel" name="clientStatusLabel">
-   <property name="geometry">
-    <rect>
-     <x>295</x>
-     <y>410</y>
-     <width>54</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="font">
-    <font>
-     <family>微软雅黑</family>
-    </font>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">background-image: url(:/chatwindow/kb.png);</string>
-   </property>
-   <property name="text">
-    <string>TextLabel</string>
-   </property>
-  </widget>
   <widget class="QPushButton" name="closeButton">
    <property name="geometry">
     <rect>
@@ -498,6 +477,110 @@ border-radius:10px; </string>
     <string/>
    </property>
   </widget>
+  <widget class="QToolButton" name="saveTBtn">
+   <property name="geometry">
+    <rect>
+     <x>360</x>
+     <y>401</y>
+     <width>28</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>保存聊天记录</string>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+   <property name="icon">
+    <iconset resource="chatwindow.qrc">
+     <normaloff>:/chatwindow/save.png</normaloff>:/chatwindow/save.png</iconset>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="autoRaise">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QToolButton" name="clearTBtn">
+   <property name="geometry">
+    <rect>
+     <x>390</x>
+     <y>401</y>
+     <width>28</width>
+     <height>28</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>清空聊天记录</string>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+   <property name="icon">
+    <iconset resource="chatwindow.qrc">
+     <normaloff>:/chatwindow/clear.png</normaloff>:/chatwindow/clear.png</iconset>
+   </property>
+   <property name="iconSize">
+    <size>
+     <width>24</width>
+     <height>24</height>
+    </size>
+   </property>
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="autoRaise">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="QLabel" name="clientStatusLabel">
+   <property name="geometry">
+    <rect>
+     <x>240</x>
+     <y>410</y>
+     <width>54</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>微软雅黑</family>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-image: url(:/chatwindow/kb.png);</string>
+   </property>
+   <property name="text">
+    <string>TextLabel</string>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="record_Show">
+   <property name="geometry">
+    <rect>
+     <x>420</x>
+     <y>80</y>
+     <width>421</width>
+     <height>321</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>微软雅黑</family>
+     <pointsize>9</pointsize>
+    </font>
+   </property>
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+  </widget>
   <zorder>label</zorder>
   <zorder>scrollArea</zorder>
   <zorder>scrollArea_2</zorder>
@@ -511,10 +594,13 @@ border-radius:10px; </string>
   <zorder>fontComboBox</zorder>
   <zorder>qxiu</zorder>
   <zorder>label_2</zorder>
-  <zorder>clientStatusLabel</zorder>
   <zorder>closeButton</zorder>
   <zorder>label_3</zorder>
   <zorder>tx</zorder>
+  <zorder>saveTBtn</zorder>
+  <zorder>clearTBtn</zorder>
+  <zorder>clientStatusLabel</zorder>
+  <zorder>record_Show</zorder>
  </widget>
  <resources>
   <include location="chatwindow.qrc"/>

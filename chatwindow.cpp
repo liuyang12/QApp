@@ -4,6 +4,7 @@
 #include "tcplink.h"
 #include <algorithm>
 #include <QIcon>
+#include <QDir>
 
 extern TCPLink *tcplink;           // tcplink 全局变量
 
@@ -122,7 +123,29 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
     }
 //    lastSpeaker = "";
 //    lastSpeakTime = QDateTime::currentDateTime();       // 获取当前时间
-
+    // 文件操作，为每一个聊天窗口建立一个文件夹
+    QDir *dir = new QDir;
+    bool exist = dir->exists("Record"); // 判断是否有消息记录文件夹，在编译文件夹下
+    if(!exist)
+        dir->mkdir("Record");   // 【消息记录】文件夹
+    QVector<int> accountsInt;
+    for(int i = 0; i < friendNo.size(); i++)
+    {
+        accountsInt.append(tcplink->friendVect[friendNo[i]].account.toInt());
+    }
+    std::sort(accountsInt.begin(), accountsInt.end());        // 对重新排序
+    nameString.clear();
+    for(int i = 0; i < accountsInt.size(); i++)
+    {
+        nameString.append(QString::number(accountsInt[i])+"_"); // nameString = "$1_$2_"
+    }
+    nameString.resize(nameString.size()-1);    // 清除最后一个字符
+    exist = dir->exists("Record//"+nameString);     // nameString
+    if(!exist)
+        dir->mkdir("Record//"+nameString);  // 创建属于该聊天窗口的文件夹，用于存储相应的图片和聊天记录
+    exist = dir->exists("Record//"+nameString+"//pictures");
+    if(!exist)
+        dir->mkdir("Record//"+nameString+"//pictures"); // 创建 Record//2012011480//pictures
 }
 
 chatWindow::~chatWindow()
@@ -363,6 +386,7 @@ void chatWindow::appendShowLine(QString &account)
     }
     lastSpeaker = account;
     ui->Show_message->append(temp); // 显示在输出框
+    chatWindow::appendRecord(temp); // 同时更新聊天记录
 }
 
 // ，准备接收，接收消息
@@ -453,11 +477,13 @@ void chatWindow::on_sendMsgButton_clicked()
     if(lastSpeaker == tcplink->friendVect[0].account && lastSpeakTime.secsTo(current) < 60)  // 如果上一个说话者距离时间小于1min就不显示
     {
         ui->Show_message->append(tmpString);   // 只显示消息
+        chatWindow::appendRecord(tmpString);    // 同时更新聊天记录
     }
     else
     {
         sendString = QString("<font size=\"3\" color=green>%1 (<font color=dodgerblue><u>%2</u></font>) %3</font>%4").arg(tcplink->friendVect[0].name).arg(tcplink->loginInfo.account).arg(datetime).arg(tmpString);   // 转为 HTML 账号-时间-消息
         ui->Show_message->append(sendString);   // 显示在输入窗口
+        chatWindow::appendRecord(sendString);       // 同时更新聊天记录
         lastSpeakTime = current;
     }
     lastSpeaker = tcplink->loginInfo.account;
@@ -630,6 +656,48 @@ void chatWindow::SpeechServerClose()
         videoTrans->close();
     }
 }
+// 清空当前消息窗口记录，同时保存当前窗口的聊天记录
+void chatWindow::on_clearTBtn_clicked()
+{
+    ui->Show_message->clear();
+}
+// 添加消息记录
+void chatWindow::appendRecord(QString &record)
+{
+    QString filestr;
+    filestr = "Record//"+nameString+"//"+nameString+".txt";
+    ///// 打开文件，如果不存在该文件则创建
+    QFile file(filestr);
+    if(!file.exists())
+    {
+        file.open(QIODevice::WriteOnly);
+        file.close();
+    }
+    //////
+    if(file.open(QIODevice::WriteOnly | QIODevice::Append)) // 在文件后追加
+    {
+        QTextStream tstream(&file);
+        tstream << record;      // 将现有的聊天记录添加到文件中
+    }
+}
+// 打开消息记录（聊天记录）
+void chatWindow::on_saveTBtn_clicked()
+{
+    QString filestr;
+    filestr = "Record//"+nameString+"//"+nameString+".txt";
+    QFile file(filestr);
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))  // 只读文本模式打开
+    {
+        /// 将现有的聊天记录显示在相应的窗口
+        ///
+        ///
+        QTextStream tStream(&file);
+        ui->record_Show->clear();
+        ui->record_Show->append(tStream.readAll());
+//        ui->record_Show->clear;   // 先清除
+//        ui->record_Show->append(tStream.readAll());    // 全部读取，并显示在聊天窗口上
+    }
+}
 
 void chatWindow::on_VideoButton_clicked()
 {
@@ -662,4 +730,3 @@ void chatWindow::MediaOpen(int choice)
         TranSpeech.audio_out->stop();
     }
 }
-
