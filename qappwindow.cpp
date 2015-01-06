@@ -48,6 +48,12 @@ QAppWindow::QAppWindow(QWidget *parent) :
                                "QPushButton:hover{border-image: url(:/mainpicture/addchat_hover.png);background-image: url(:/mainpicture/kb.png);}"
                               );
 
+    ui->logout->setMouseTracking(true);
+    ui->logout->setStyleSheet("QPushButton{border-image: url(:/mainpicture/kb.png);background-image: url(:/mainpicture/kb.png);color: rgb(255, 255, 255);}"
+                                    "QPushButton:hover{border-image: url(:/mainpicture/kb.png);background-color: rgb(75, 162, 255);color: rgb(255, 255, 255);}"
+                                    );
+
+
     //设置加好友输入框不显示
     flag = false;
     ui->Edit_FriendAccount->setVisible(flag);
@@ -108,7 +114,7 @@ QAppWindow::QAppWindow(QWidget *parent) :
     }
     // 设置自己的头像和昵称
     ui->touxiang->setStyleSheet("border-image: url("+tcplink->friendVect[0].avatar+");");
-    ui->qname->setText(tcplink->friendVect[0].name);
+    ui->nickname->setText(tcplink->friendVect[0].name);
 
     //建treewidget
     build_tree();
@@ -1268,4 +1274,13 @@ void QAppWindow::RefreshFriendsStatus()
             }
         }
     }
+}
+
+//退出帐号
+void QAppWindow::on_logout_clicked()
+{
+    tcplink->userInfo.status = tcplink->loginInfo.status = OFFLINE;
+    tcplink->userInfo.account = tcplink->loginInfo.account;
+//    tcplink->requestKind = LOGOUT;
+    tcplink->logoutRequest(tcplink->userInfo);
 }

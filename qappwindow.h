@@ -107,6 +107,8 @@ private slots:
 
     void RefreshFriendsStatus();                //通过服务器刷新好友状态的槽函数
 
+    void on_logout_clicked();
+
 private:
     Ui::QAppWindow *ui;
 

@@ -28,6 +28,8 @@ public:
     void initWindowHead(void );     // 设置窗口标题和头像
     void initSocket(void );     // 初始化 TCPSocket 通信
     bool operator ==(const chatWindow &chat);   // 重载等号运算符，如果两个窗口 friendNo 一致（不考虑序号）则两个窗口是同一个窗口
+    bool flag;
+    bool flag_record;
 
 private:
     Ui::chatWindow *ui;
@@ -84,7 +86,27 @@ private slots:
 
     void MediaOpen(int choice);             //开启语音&视频
 
+//    void on_VideoButton_clicked();
+
+    void on_fontButton_clicked();
+
+    void on_B_clicked();
+
+    void on_I_clicked();
+
+    void on_U_clicked();
+
+    void on_color_clicked();
+
     void on_VideoButton_clicked();
+
+    void on_pushButton_clicked();
+
+    void on_Show_message_customContextMenuRequested(const QPoint &pos);
+
+    void clear_showmsg();
+
+    void on_doudong_clicked();
 
 signals:
     void connectionFailedSignal();

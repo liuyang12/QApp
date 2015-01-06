@@ -146,6 +146,100 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
     exist = dir->exists("Record//"+nameString+"//pictures");
     if(!exist)
         dir->mkdir("Record//"+nameString+"//pictures"); // 创建 Record//2012011480//pictures
+
+    //----------------------------------------------------------------------
+            //建群聊成员列表
+            ui->treeWidget->setVisible(true);
+            ui->treeWidget->setStyleSheet("QTreeWidget::item{height:20px}");
+            ui->treeWidget->setIconSize(QSize(20,20));
+            //建树
+            QTreeWidgetItem * item[50];
+            int i = 0;
+            item[0] = new QTreeWidgetItem(ui->treeWidget,QStringList("群成员"));
+            for(i = 1; i <= friendNo.size() ; i++)
+            {
+                QString name = tcplink->friendVect[friendNo[i-1]].name;
+                QString account = tcplink->friendVect[friendNo[i-1]].account;
+                QString avatar = tcplink->friendVect[friendNo[i-1]].avatar;
+                item[i] = new QTreeWidgetItem(item[0],QStringList(name+"("+account+")"));//建组名的父节点
+                item[i]->setIcon(0,QIcon(avatar));
+            }
+            ui->treeWidget->expandAll(); //结点全部展开
+
+//        }
+    //    lastSpeaker = "";
+    //    lastSpeakTime = QDateTime::currentDateTime();       // 获取当前时间
+
+        ui->closebutton->setMouseTracking(true);
+        ui->closebutton->setStyleSheet("QPushButton{border-image: url(:/mainpicture/kb.png);background-image: url(:/mainpicture/kb.png);color: rgb(255, 255, 255);}"
+                                       "QPushButton:hover{border-image: url(:/mainpicture/kb.png);background-color: rgb(226, 63, 48);color: rgb(255, 255, 255);}"
+                                       );
+        ui->minButton->setMouseTracking(true);
+        ui->minButton->setStyleSheet("QPushButton{border-image: url(:/mainpicture/kb.png);background-image: url(:/mainpicture/kb.png);color: rgb(255, 255, 255);}"
+                                     "QPushButton:hover{border-image: url(:/mainpicture/kb.png);background-color: rgb(75, 162, 255);color: rgb(255, 255, 255);}"
+                                     );
+        ui->fontButton->setMouseTracking(true);
+        ui->fontButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/mainpicture/kb.png);}"
+                                      "QPushButton:hover{background-image: url(:/chatwindow/lessbule.jpg);border-image: url(:/mainpicture/lessbule.png);}"
+                                     );
+        ui->closeButton->setMouseTracking(true);
+        ui->closeButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/deepbule.jpg);color: rgb(255, 255, 255);}"
+                                       "QPushButton:hover{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/bule.jpg);color: rgb(255, 255, 255);}"
+                                      );
+        ui->sendMsgButton->setMouseTracking(true);
+        ui->sendMsgButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/deepbule.jpg);color: rgb(255, 255, 255);}"
+                                       "QPushButton:hover{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/bule.jpg);color: rgb(255, 255, 255);}"
+                                      );
+        ui->openFileButton->setMouseTracking(true);
+        ui->openFileButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/aio_toobar_send.png);}"
+                                          "QPushButton:hover{background-color: rgb(2, 137, 255);border-image: url(:/chatwindow/aio_toobar_send.png);border: 1px solid black; border-color: rgb(255, 255, 255);}"
+                                          );
+        ui->VideoButton->setMouseTracking(true);
+        ui->VideoButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/aio_toobar_video.png);}"
+                                       "QPushButton:hover{background-color: rgb(2, 137, 255);border-image: url(:/chatwindow/aio_toobar_video.png);border: 1px solid black; border-color: rgb(255, 255, 255);}"
+                                       );
+        ui->SpeechButton->setMouseTracking(true);
+        ui->SpeechButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/aio_toobar_audio.png);}"
+                                       "QPushButton:hover{background-color: rgb(2, 137, 255);border-image: url(:/chatwindow/aio_toobar_audio.png);border: 1px solid black; border-color: rgb(255, 255, 255);}"
+                                       );
+        //聊天记录按钮
+        ui->pushButton->setMouseTracking(true);
+        ui->pushButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/kb.png);color: rgb(0, 85, 255);}"
+                                      "QPushButton:hover{color: rgb(12, 117, 255);border: 1px solid gray;border-radius:2px;background-image: url(:/chatwindow/lessbule.jpg);}"
+                                      );
+        ui->doudong->setMouseTracking(true);
+        ui->doudong->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/mainpicture/kb.png);border-image: url(:/chatwindow/aio_quickbar_twitter_hover.png);}"
+                                      "QPushButton:hover{background-image: url(:/chatwindow/lessbule.jpg);border-image: url(:/mainpicture/lessbule.png);border-image: url(:/chatwindow/aio_quickbar_twitter_hover.png);}"
+                                     );
+
+
+       //--------------------------------------------
+
+        ui->B->setStyleSheet("QPushButton{border-image: url(:/chatwindow/B_normal.png);background-image: url(:/chatwindow/kb.png);}"
+                             "QPushButton:hover{border-image: url(:/chatwindow/B_highlight.png);background-image: url(:/chatwindow/kb.png);}"
+                             );
+        ui->I->setStyleSheet("QPushButton{border-image: url(:/chatwindow/I_normal.png);background-image: url(:/chatwindow/kb.png);}"
+                             "QPushButton:hover{border-image: url(:/chatwindow/I_highlight.png);background-image: url(:/chatwindow/kb.png);}"
+                             );
+        ui->U->setStyleSheet("QPushButton{border-image: url(:/chatwindow/U_normal.png);background-image: url(:/chatwindow/kb.png);}"
+                             "QPushButton:hover{border-image: url(:/chatwindow/U_highlight.png);background-image: url(:/chatwindow/kb.png);}"
+                             );
+        flag = false;
+        ui->B->setVisible(flag);
+        ui->I->setVisible(flag);
+        ui->U->setVisible(flag);
+        ui->color->setVisible(flag);
+        ui->fontComboBox->setVisible(flag);
+        ui->clientStatusLabel->setVisible(false);
+        ui->clientProgressBar->setVisible(false);
+        ui->audio_label->setVisible(false);
+        ui->scrollArea->resize(441,321);
+        ui->Show_message->resize(441,321);
+
+        flag_record = false;
+        ui->record->setVisible(flag_record);
+        ui->record->resize(261,471);
+
 }
 
 chatWindow::~chatWindow()
@@ -526,6 +620,34 @@ void chatWindow::on_SpeechButton_clicked()
     MediaOpen(1);
 }
 
+//void chatWindow::on_SpeechButton_clicked()
+//{
+//    if(!TranSpeech.SpeechConnected)
+//    {
+//        TranSpeech.SpeechConnected = 1;             //按下表示连接请求
+//        TranSpeech.SpeechSocket = new QTcpSocket(this);
+//        TranSpeech.SpeechSocket->connectToHost(friendInfo.node.hostAddr,9999);//getPortNumber(loginInfo.account));
+//        connect(TranSpeech.SpeechSocket,SIGNAL(readyRead()),this,SLOT(SpeechTransfer()));
+//        connect(TranSpeech.SpeechSocket,SIGNAL(disconnected()),this,SLOT(SpeechServerClose()));
+//        char *tempMess = "SPEECH_REQUEST";
+//        TranSpeech.SpeechSocket->write(tempMess);
+//    }
+//    else
+//    {
+//        TranSpeech.SpeechConnected = 0;  //连接状态按下则关闭
+//        TranSpeech.SpeechSocket->disconnectFromHost();
+//        //ui->SpeechButton->setText(tr("开启语音"));
+
+//        ui->Show_message->resize(441,291);
+//        ui->scrollArea->resize(441,291);
+//        ui->audio_label->setVisible(true);
+//        ui->audio_label->setText("您正在与对方进行语音通话……再次单击图标可关闭语音");
+
+//        TranSpeech.audio_in->stop();
+//        TranSpeech.audio_out->stop();
+//    }
+//}
+
 void chatWindow::SpeechConnection()
 {
     if(!TranSpeech.SpeechConnected)
@@ -692,8 +814,8 @@ void chatWindow::on_saveTBtn_clicked()
         ///
         ///
         QTextStream tStream(&file);
-        ui->record_Show->clear();
-        ui->record_Show->append(tStream.readAll());
+        ui->record->clear();
+        ui->record->append(tStream.readAll());
 //        ui->record_Show->clear;   // 先清除
 //        ui->record_Show->append(tStream.readAll());    // 全部读取，并显示在聊天窗口上
     }
@@ -729,4 +851,132 @@ void chatWindow::MediaOpen(int choice)
         TranSpeech.audio_in->stop();
         TranSpeech.audio_out->stop();
     }
+}
+
+//----------------------------修改文字格式---------------------
+
+void chatWindow::on_fontButton_clicked()
+{
+    flag = !flag;
+    ui->B->setVisible(flag);
+    ui->I->setVisible(flag);
+    ui->U->setVisible(flag);
+    ui->color->setVisible(flag);
+    ui->fontComboBox->setVisible(flag);
+    if(flag==true) //显示文字格式编辑
+    {
+        ui->Show_message->resize(441,291);
+        ui->scrollArea->resize(441,291);
+    }
+    if(flag==false) //不显示文字格式编辑
+    {
+        ui->Show_message->resize(441,321);
+        ui->scrollArea->resize(441,321);
+    }
+}
+
+void chatWindow::on_B_clicked()
+{
+    if(ui->Edit_message->fontWeight()==QFont::Bold)
+        ui->Edit_message->setFontWeight(QFont::Normal);
+    if(ui->Edit_message->fontWeight()==QFont::Normal)
+        ui->Edit_message->setFontWeight(QFont::Bold);
+}
+
+void chatWindow::on_I_clicked()
+{
+    bool Italic = ui->Edit_message->fontItalic();
+    ui->Edit_message->setFontItalic(!Italic);
+}
+
+void chatWindow::on_U_clicked()
+{
+    bool underline = ui->Edit_message->fontUnderline();
+    ui->Edit_message->setFontUnderline(!underline);
+}
+
+void chatWindow::on_color_clicked()
+{
+    QColor color = QColorDialog::getColor(Qt::white, this);
+    ui->Edit_message->setTextColor(color);
+}
+
+
+//视频按钮
+
+//void chatWindow::on_VideoButton_clicked()
+//{
+//    //TODO：开始视频
+
+//    //开始视频后
+//    ui->Show_message->resize(441,291);
+//    ui->scrollArea->resize(441,291);
+//    ui->audio_label->setVisible(true);
+//    ui->audio_label->setText("您正在与对方进行视频……再次单击图标可关闭视频");
+
+//    //再次点击结束视频
+//    ui->Show_message->resize(441,331);
+//    ui->scrollArea->resize(441,331);
+//    ui->audio_label->setVisible(false);
+
+//}
+
+
+//打开聊天记录按钮
+void chatWindow::on_pushButton_clicked()
+{
+    //ui->record->setVisible(true);
+    flag_record = !flag_record;
+    ui->record->setVisible(flag_record);
+    if(flag_record==true)
+    {
+//        qDebug()<<"true";
+//        ui->record->setVisible(true);
+        this->resize(661,546);
+        //TODO:打开聊天记录显示到record中
+
+    }
+    if(flag_record==false)
+    {
+//        qDebug()<<"false";
+//        ui->record->setVisible(false);
+        this->resize(581,546);
+    }
+
+
+//    if(ui->record->isVisible()==false)
+//    {
+//        qDebug()<<"true";
+//        ui->record->setVisible(true);
+//        this->resize(661,546);
+//        //TODO:打开聊天记录显示到record中
+
+//    }
+//    if(ui->record->isVisible()==true)
+//    {
+//        qDebug()<<"false";
+//        ui->record->setVisible(false);
+//        this->resize(581,546);
+//    }
+}
+
+//右键清空show_message
+void chatWindow::on_Show_message_customContextMenuRequested(const QPoint &pos)
+{
+    QMenu *popMenu =new QMenu(this);//定义一个右键弹出菜单
+    QAction *clearmsg = popMenu->addAction("清除聊天记录");
+    connect(clearmsg,SIGNAL(triggered(bool)), this, SLOT(clear_showmsg()));
+    popMenu->exec(QCursor::pos());//弹出右键菜单，菜单位置为光标位置
+}
+void chatWindow::clear_showmsg()
+{
+    ui->Show_message->clear();
+//
+}
+
+
+//窗口抖动
+void chatWindow::on_doudong_clicked()
+{
+
 }

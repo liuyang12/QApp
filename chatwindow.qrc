@@ -20,7 +20,16 @@
         <file>chatwindow/QX8.jpg</file>
         <file>chatwindow/lt.png</file>
         <file>chatwindow/font.png</file>
-        <file>chatwindow/clear.png</file>
-        <file>chatwindow/save.png</file>
+        <file>chatwindow/B_highlight.png</file>
+        <file>chatwindow/B_normal.png</file>
+        <file>chatwindow/color.png</file>
+        <file>chatwindow/I_highlight.png</file>
+        <file>chatwindow/I_normal.png</file>
+        <file>chatwindow/U_highlight.png</file>
+        <file>chatwindow/U_normal.png</file>
+        <file>chatwindow/aio_toobar_audio.png</file>
+        <file>chatwindow/aio_toobar_send.png</file>
+        <file>chatwindow/aio_toobar_video.png</file>
+        <file>chatwindow/aio_quickbar_twitter_hover.png</file>
     </qresource>
 </RCC>

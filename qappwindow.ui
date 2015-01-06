@@ -170,10 +170,10 @@ border-image: url(:/picture/kb.png);</string>
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="qname">
+   <widget class="QLabel" name="nickname">
     <property name="geometry">
      <rect>
-      <x>100</x>
+      <x>90</x>
       <y>30</y>
       <width>91</width>
       <height>21</height>
@@ -431,11 +431,39 @@ border-image: url(:/mainpicture/addchat_normal.png);</string>
      </property>
     </column>
    </widget>
+   <widget class="QPushButton" name="logout">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>0</y>
+      <width>61</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-image: url(:/mainpicture/kb.png);
+border-image: url(:/mainpicture/kb.png);
+color: rgb(255, 255, 255);
+background-color: rgb(75, 162, 255);
+</string>
+    </property>
+    <property name="text">
+     <string>退出帐号</string>
+    </property>
+    <property name="flat">
+     <bool>true</bool>
+    </property>
+   </widget>
    <zorder>bj</zorder>
    <zorder>closeButton</zorder>
    <zorder>qappminButton</zorder>
    <zorder>touxiang</zorder>
-   <zorder>qname</zorder>
+   <zorder>nickname</zorder>
    <zorder>Edit_FriendAccount</zorder>
    <zorder>treeWidget</zorder>
    <zorder>Button_queryFriend</zorder>
@@ -449,6 +477,7 @@ border-image: url(:/mainpicture/addchat_normal.png);</string>
    <zorder>addtreeWidget</zorder>
    <zorder>quntreeWidget</zorder>
    <zorder>startadd</zorder>
+   <zorder>logout</zorder>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_Logout">
