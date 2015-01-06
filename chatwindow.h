@@ -5,6 +5,8 @@
 #include <QDateTime>
 #include "classConstant.h"
 
+#include "video.h"
+
 namespace Ui {
 class chatWindow;
 }
@@ -41,6 +43,8 @@ private:
     qint16 blockSize;       // 块大小
 
     QString getCurrentDateTime(void);   // 获取当前日期时间
+
+    Video *videoTrans;
 protected:
     bool eventFilter(QObject *, QEvent *);  // 重写虚函数事件过滤
 
@@ -69,6 +73,10 @@ private slots:
     void SpeechTransfer();                  //语音传输
     void readSpeech();                      //读取语音
     void SpeechServerClose();               //关闭语音
+
+    void MediaOpen(int choice);             //开启语音&视频
+
+    void on_VideoButton_clicked();
 
 signals:
     void connectionFailedSignal();

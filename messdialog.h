@@ -42,6 +42,7 @@ private:
     QRect deskRect;
 
     FriendInfo FriendChat;
+    QString BoxTitle;
 };
 
 #endif // MESSDIALOG_H

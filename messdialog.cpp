@@ -84,7 +84,7 @@ void MessDialog::on_CloseButton_clicked()
 
 void MessDialog::on_WorkButton_clicked()
 {
-    if(FriendChat.status == ONLINE)
+    if(FriendChat.status == ONLINE && BoxTitle == QString(tr("上线提醒")))
     {
         tcplink->friendInfo.account = FriendChat.account;
         tcplink->friendInfo.node.hostAddr = FriendChat.node.hostAddr;
@@ -96,6 +96,7 @@ void MessDialog::on_WorkButton_clicked()
 void MessDialog::SetMessage(QString Title, QString MainDoc, QString YesButton,
                             QString NoButton, FriendInfo hostInfo)
 {
+    BoxTitle = Title;
     ui->Title_label->setText(Title);
     ui->DocBrowser->setText(MainDoc);
     ui->WorkButton->setText(YesButton);

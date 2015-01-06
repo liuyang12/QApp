@@ -1257,14 +1257,14 @@ void QAppWindow::RefreshFriendsStatus()
                 MessBox = new MessDialog();
                 MessBox->SetMessage(QString(tr("上线提醒")),QString(tr("您的好友\n")) + TempFriend.account + QString(tr("已上线")),
                                     QString(tr("聊天")),QString(tr("忽略")),tcplink->friendVect[i]);
-                MessBox->show();
+                //MessBox->show();
             }
             else if(FriendState == OFFLINE)
             {
                 MessBox = new MessDialog();
                 MessBox->SetMessage(QString(tr("下线提醒")),QString(tr("您的好友\n")) + TempFriend.account + QString(tr("已下线")),
                                     QString(tr("知道了")),QString(tr("忽略")),tcplink->friendVect[i]);
-                MessBox->show();
+                //MessBox->show();
             }
         }
     }

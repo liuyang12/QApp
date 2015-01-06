@@ -87,6 +87,19 @@
       <string>开启语音</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="VideoButton">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>300</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>开启视频</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QScrollArea" name="scrollArea_2">

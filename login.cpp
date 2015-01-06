@@ -210,7 +210,6 @@ void login::on_buttonConfirm_clicked()
         tcplink->loginRequest(tcplink->loginInfo);
         setWindowTitle("logging in...");
         ui->buttonConfirm->setEnabled(false);
-        loginIcon->deleteLater();   // 此处可能会出 bug
     }
 }
 void login::newReply(qint32 replyKind)
@@ -232,6 +231,7 @@ void login::newReply(qint32 replyKind)
         ui->buttonConfirm->setEnabled(true);
         qapp->show();
         this->close();
+        delete loginIcon;
         break;
     case LOGIN_NO_ACCOUNT:
         loginInfo.status = OFFLINE;
@@ -263,7 +263,7 @@ void login::reLogin()
 void login::on_close_button_clicked()
 {
     ui->Button_ConfigServer->raise();
-    loginIcon->deleteLater();
+    delete loginIcon;
     this->reject();
     this->close();
 }

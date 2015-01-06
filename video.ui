@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Video</class>
+ <widget class="QWidget" name="Video">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>640</width>
+    <height>510</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Video</string>
+  </property>
+  <widget class="QLabel" name="PeerVideoLabel">
+   <property name="geometry">
+    <rect>
+     <x>512</x>
+     <y>384</y>
+     <width>128</width>
+     <height>96</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>15</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>摄像头未开启</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="TakeCameraButton">
+   <property name="geometry">
+    <rect>
+     <x>470</x>
+     <y>480</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>拍照</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="CloseCameraButton">
+   <property name="geometry">
+    <rect>
+     <x>555</x>
+     <y>480</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>关闭</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="OwnVideoLabel">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>640</width>
+     <height>480</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <pointsize>72</pointsize>
+    </font>
+   </property>
+   <property name="text">
+    <string>摄像头未开启</string>
+   </property>
+  </widget>
+  <zorder>TakeCameraButton</zorder>
+  <zorder>CloseCameraButton</zorder>
+  <zorder>OwnVideoLabel</zorder>
+  <zorder>PeerVideoLabel</zorder>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

@@ -48,8 +48,8 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
     TranSpeech.audio_out = new QAudioOutput(TranSpeech.ad_format,this);
 
     connect(TranSpeech.SpeechServer,SIGNAL(newConnection()),this,
-            SLOT(SpeechConnection()));            //开启语音监听,端口为学号后四位
-    TranSpeech.SpeechServer->listen(QHostAddress::Any,9999);//getPortNumber(friendInfo.account));
+            SLOT(SpeechConnection()));            //开启语音监听
+    TranSpeech.SpeechServer->listen(QHostAddress::Any,17777);//getPortNumber(friendInfo.account));
 
 
     //聊天窗口初始化
@@ -252,7 +252,7 @@ void chatWindow::on_openFileButton_clicked()
         SendFile.FinishedBytes = 0;
         FileConnect = false;
         ui->clientStatusLabel->setText(tr("正在连接"));
-        tcpClient->connectToHost(friendInfo.node.hostAddr, /*getPortNumber(friendInfo.account)*/16666);
+        tcpClient->connectToHost(tcplink->friendVect[friendNo[0]].node.hostAddr,16666);
         char *Mess = "TRANS";
         tcpClient->write(Mess);
     }
@@ -497,24 +497,7 @@ void chatWindow::on_minButton_clicked()
 
 void chatWindow::on_SpeechButton_clicked()
 {
-    if(!TranSpeech.SpeechConnected)
-    {
-        TranSpeech.SpeechConnected = 1;             //按下表示连接请求
-        TranSpeech.SpeechSocket = new QTcpSocket(this);
-        TranSpeech.SpeechSocket->connectToHost(friendInfo.node.hostAddr,9999);//getPortNumber(loginInfo.account));
-        connect(TranSpeech.SpeechSocket,SIGNAL(readyRead()),this,SLOT(SpeechTransfer()));
-        connect(TranSpeech.SpeechSocket,SIGNAL(disconnected()),this,SLOT(SpeechServerClose()));
-        char *tempMess = "SPEECH_REQUEST";
-        TranSpeech.SpeechSocket->write(tempMess);
-    }
-    else
-    {
-        TranSpeech.SpeechConnected = 0;             //连接状态按下则关闭
-        TranSpeech.SpeechSocket->disconnectFromHost();
-        ui->SpeechButton->setText(tr("开启语音"));
-        TranSpeech.audio_in->stop();
-        TranSpeech.audio_out->stop();
-    }
+    MediaOpen(1);
 }
 
 void chatWindow::SpeechConnection()
@@ -533,14 +516,15 @@ void chatWindow::SpeechTransfer()
     if(TranSpeech.SpeechConnected == 1)
     {
         QString str = TranSpeech.SpeechSocket->readAll();
-        if(str == QString("SPEECH_REQUEST"))
+        char *tempMess;
+//-----------------------------------语音请求-----------------------------------
+        if(str == QString("SP_REQ"))
         {
-            char *tempMess;
             switch (QMessageBox::information(this,tr("语音通话请求"), tr("用户")+
                     tcplink->friendInfo.account+tr("希望和你语音？\n是否开启语音"), "开启(&A)", "拒绝(&C)", 0))
             {
             case 0:
-                tempMess = "SPEECH_ACCEPT";
+                tempMess = "SP_ACPT";
                 TranSpeech.SpeechSocket->write(tempMess);
                 TranSpeech.SpeechConnected = 2;
                 ui->SpeechButton->setText(tr("关闭语音"));
@@ -549,7 +533,7 @@ void chatWindow::SpeechTransfer()
                 TranSpeech.buffer_out = TranSpeech.audio_out->start();
                 break;
             case 1:
-                tempMess = "SPEECH_REFUSE";
+                tempMess = "SP_REF";
                 TranSpeech.SpeechSocket->write(tempMess);
                 TranSpeech.SpeechConnected = 0;
                 break;
@@ -557,7 +541,37 @@ void chatWindow::SpeechTransfer()
                 break;
             }
         }
-        else if(str == QString("SPEECH_ACCEPT"))
+//-----------------------------------视频请求-----------------------------------
+        else if(str == QString("VI_REQ"))
+        {
+            switch (QMessageBox::information(this,tr("视频通话请求"), tr("用户")+
+                    tcplink->friendInfo.account+tr("希望和你视频？\n是否开启视频"), "开启(&A)", "拒绝(&C)", 0))
+            {
+            case 0:
+                tempMess = "VI_ACPT";
+                TranSpeech.SpeechSocket->write(tempMess);
+                TranSpeech.SpeechConnected = 2;
+                ui->VideoButton->setText(tr("关闭视频"));
+                ui->SpeechButton->setText(tr("关闭语音"));
+                TranSpeech.buffer_in = TranSpeech.audio_in->start();
+                connect(TranSpeech.buffer_in,SIGNAL(readyRead()),this,SLOT(readSpeech()));
+                TranSpeech.buffer_out = TranSpeech.audio_out->start();
+                videoTrans = new Video();
+                connect(videoTrans,SIGNAL(closeMedia()),this,SLOT(SpeechServerClose()));
+                videoTrans->SetHostAddr(tcplink->friendInfo.node.hostAddr);
+                videoTrans->show();
+                break;
+            case 1:
+                tempMess = "VI_REF";
+                TranSpeech.SpeechSocket->write(tempMess);
+                TranSpeech.SpeechConnected = 0;
+                break;
+            default:
+                break;
+            }
+        }
+//-----------------------------------语音确认-----------------------------------
+        else if(str == QString("SP_ACPT"))
         {
             TranSpeech.SpeechConnected = 2;
             ui->SpeechButton->setText(tr("关闭语音"));
@@ -565,10 +579,23 @@ void chatWindow::SpeechTransfer()
             connect(TranSpeech.buffer_in,SIGNAL(readyRead()),this,SLOT(readSpeech()));
             TranSpeech.buffer_out = TranSpeech.audio_out->start();
         }
-        else
+//-----------------------------------视频确认-----------------------------------
+        else if(str == QString("VI_ACPT"))
         {
-            TranSpeech.SpeechConnected = 0;
+            TranSpeech.SpeechConnected = 2;
+            ui->VideoButton->setText(tr("关闭视频"));
+            ui->SpeechButton->setText(tr("关闭语音"));
+            TranSpeech.buffer_in = TranSpeech.audio_in->start();
+            connect(TranSpeech.buffer_in,SIGNAL(readyRead()),this,SLOT(readSpeech()));
+            TranSpeech.buffer_out = TranSpeech.audio_out->start();
+            videoTrans = new Video();
+            connect(videoTrans,SIGNAL(closeMedia(int )),this,SLOT(MediaOpen(int)));
+            videoTrans->SetHostAddr(tcplink->friendInfo.node.hostAddr);
+            videoTrans->show();
         }
+//-------------------------------------拒绝-------------------------------------
+        else
+            TranSpeech.SpeechConnected = 0;
     }
     if(TranSpeech.SpeechConnected == 2)
     {
@@ -596,8 +623,43 @@ void chatWindow::SpeechServerClose()
     if(TranSpeech.SpeechConnected)
     {
         TranSpeech.SpeechConnected = 0;
+        ui->VideoButton->setText(tr("开启视频"));
+        ui->SpeechButton->setText(tr("开启语音"));
+        TranSpeech.audio_in->stop();
+        TranSpeech.audio_out->stop();
+        videoTrans->close();
+    }
+}
+
+void chatWindow::on_VideoButton_clicked()
+{
+    MediaOpen(2);
+}
+
+//开启语音&视频(1表示语音/2表示)
+void chatWindow::MediaOpen(int choice)
+{
+    if(!TranSpeech.SpeechConnected)
+    {
+        TranSpeech.SpeechConnected = 1;             //按下表示连接请求
+        TranSpeech.SpeechSocket = new QTcpSocket(this);
+        TranSpeech.SpeechSocket->connectToHost(tcplink->friendVect[friendNo[0]].node.hostAddr,17777);
+        connect(TranSpeech.SpeechSocket,SIGNAL(readyRead()),this,SLOT(SpeechTransfer()));
+        connect(TranSpeech.SpeechSocket,SIGNAL(disconnected()),this,SLOT(SpeechServerClose()));
+        char *tempMess;
+        if(choice == 1)
+            tempMess = "SP_REQ";
+        else if(choice == 2)
+            tempMess = "VI_REQ";
+        TranSpeech.SpeechSocket->write(tempMess);
+    }
+    else
+    {
+        TranSpeech.SpeechConnected = 0;             //连接状态按下则关闭
+        TranSpeech.SpeechSocket->disconnectFromHost();
         ui->SpeechButton->setText(tr("开启语音"));
         TranSpeech.audio_in->stop();
         TranSpeech.audio_out->stop();
     }
 }
+
