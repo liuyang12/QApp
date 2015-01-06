@@ -993,7 +993,7 @@ void TCPLink::databaseInsert(FriendInfo &frd)
     QSqlQuery qr;
     // 插入一个新的好友，并更新相应的信息
     qr.prepare("insert into friends (account, nickname, avatar, IP, status) values(:account, :nickname, :avatar, :IP, :status)");
-    qr.bindValue(":accout", frd.account);   // 账号
+    qr.bindValue(":account", frd.account);   // 账号
     qr.bindValue(":nickname", frd.name);    // 昵称
     qr.bindValue(":avatar", frd.avatar);    // 头像路径
     qr.bindValue(":IP", frd.node.hostAddr);// IP

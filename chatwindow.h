@@ -115,7 +115,7 @@ signals:
 };
 #ifndef FRIENDNOEQUAL
 #define FRIENDNOEQUAL
-inline bool friendNoEqual(QVector<int> friendNo_a, QVector<int> friendNo_b);
+bool friendNoEqual(QVector<int> friendNo_a, QVector<int> friendNo_b);
 #endif
 
 #endif // CHATWINDOW_H
