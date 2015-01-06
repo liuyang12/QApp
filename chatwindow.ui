@@ -67,7 +67,7 @@
      <property name="font">
       <font>
        <family>微软雅黑</family>
-       <pointsize>11</pointsize>
+       <pointsize>9</pointsize>
       </font>
      </property>
      <property name="contextMenuPolicy">
@@ -118,7 +118,7 @@
      <property name="font">
       <font>
        <family>微软雅黑</family>
-       <pointsize>11</pointsize>
+       <pointsize>10</pointsize>
       </font>
      </property>
      <property name="contextMenuPolicy">
@@ -456,7 +456,7 @@ border-radius:10px; </string>
     <string/>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="recordButton">
    <property name="geometry">
     <rect>
      <x>340</x>
@@ -673,11 +673,18 @@ border-image: url(:/chatwindow/aio_toobar_video.png);</string>
   <widget class="QTextEdit" name="record">
    <property name="geometry">
     <rect>
-     <x>420</x>
+     <x>410</x>
      <y>80</y>
      <width>121</width>
      <height>271</height>
     </rect>
+   </property>
+   <property name="font">
+    <font>
+     <family>微软雅黑</family>
+     <weight>50</weight>
+     <bold>false</bold>
+    </font>
    </property>
    <property name="styleSheet">
     <string notr="true">background-image: url(:/chatwindow/white.jpg);
@@ -718,7 +725,7 @@ border-image: url(:/chatwindow/white.jpg);</string>
   <zorder>closeButton</zorder>
   <zorder>label_3</zorder>
   <zorder>tx</zorder>
-  <zorder>pushButton</zorder>
+  <zorder>recordButton</zorder>
   <zorder>fontComboBox</zorder>
   <zorder>B</zorder>
   <zorder>I</zorder>

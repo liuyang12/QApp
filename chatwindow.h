@@ -108,6 +108,8 @@ private slots:
 
     void on_doudong_clicked();
 
+    void on_recordButton_clicked();
+
 signals:
     void connectionFailedSignal();
 };

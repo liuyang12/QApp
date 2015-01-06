@@ -203,8 +203,8 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
                                        "QPushButton:hover{background-color: rgb(2, 137, 255);border-image: url(:/chatwindow/aio_toobar_audio.png);border: 1px solid black; border-color: rgb(255, 255, 255);}"
                                        );
         //聊天记录按钮
-        ui->pushButton->setMouseTracking(true);
-        ui->pushButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/kb.png);color: rgb(0, 85, 255);}"
+        ui->recordButton->setMouseTracking(true);
+        ui->recordButton->setStyleSheet("QPushButton{background-image: url(:/chatwindow/kb.png);border-image: url(:/chatwindow/kb.png);color: rgb(0, 85, 255);}"
                                       "QPushButton:hover{color: rgb(12, 117, 255);border: 1px solid gray;border-radius:2px;background-image: url(:/chatwindow/lessbule.jpg);}"
                                       );
         ui->doudong->setMouseTracking(true);
@@ -238,7 +238,7 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
 
         flag_record = false;
         ui->record->setVisible(flag_record);
-        ui->record->resize(261,471);
+        ui->record->resize(320,471);
 
 }
 
@@ -979,4 +979,38 @@ void chatWindow::clear_showmsg()
 void chatWindow::on_doudong_clicked()
 {
 
+}
+
+void chatWindow::on_recordButton_clicked()
+{
+    QString filestr;
+    filestr = "Record//"+nameString+"//"+nameString+".txt";
+    QFile file(filestr);
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))  // 只读文本模式打开
+    {
+        /// 将现有的聊天记录显示在相应的窗口
+        ///
+        ///
+        QTextStream tStream(&file);
+        ui->record->clear();
+        ui->record->append(tStream.readAll());
+//        ui->record_Show->clear;   // 先清除
+//        ui->record_Show->append(tStream.readAll());    // 全部读取，并显示在聊天窗口上
+    }
+    flag_record = !flag_record;
+    ui->record->setVisible(flag_record);
+    if(flag_record==true)
+    {
+//        qDebug()<<"true";
+//        ui->record->setVisible(true);
+        this->resize(661,546);
+        //TODO:打开聊天记录显示到record中
+
+    }
+    if(flag_record==false)
+    {
+//        qDebug()<<"false";
+//        ui->record->setVisible(false);
+        this->resize(581,546);
+    }
 }
