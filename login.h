@@ -86,6 +86,9 @@ signals:
     void loggedinSignal(void);      // 用户已经登录信号
     void disconnectedSignal(void);  // 服务器未连接
 //    void connectionFailedSignal(void);
+
+public slots:
+    void newIcon();                     //新建图标
 };
 
 #endif // LOGIN_H

@@ -90,13 +90,7 @@ login::login(QWidget *parent) :
     connect(tcplink, SIGNAL(connectionFailedSignal()), this, SLOT(initStatus()));
     connect(tcplink, SIGNAL(disconnectedSignal()), this, SLOT(serverDisconnected()));
 
-    loginIcon = new QSystemTrayIcon(this);
-    connect(loginIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,
-            SLOT(IconClicked(QSystemTrayIcon::ActivationReason)));
-    QIcon icon(":/picture/Mushroomoffline.ico");
-    loginIcon->setIcon(icon);
-    loginIcon->show();
-    loginIcon->showMessage(QString(tr("提示")),QString(tr("冒个泡")));
+    newIcon();
 }
 
 login::~login()
@@ -228,6 +222,7 @@ void login::newReply(qint32 replyKind)
         qapp = new QAppWindow(/*tcplink, */NULL);
         // 连接重新登录信号
         connect(qapp, SIGNAL(reLoginSignal()), this, SLOT(reLogin()));
+        connect(qapp,SIGNAL(newlogIcon()),this,SLOT(newIcon()));
         ui->buttonConfirm->setEnabled(true);
         qapp->show();
         this->close();
@@ -320,4 +315,15 @@ void login::IconClicked(QSystemTrayIcon::ActivationReason reason)
     default:
         break;
     }
+}
+
+void login::newIcon()
+{
+    loginIcon = new QSystemTrayIcon(this);
+    connect(loginIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,
+            SLOT(IconClicked(QSystemTrayIcon::ActivationReason)));
+    QIcon icon(":/picture/Mushroomoffline.ico");
+    loginIcon->setIcon(icon);
+    loginIcon->show();
+    loginIcon->showMessage(QString(tr("提示")),QString(tr("冒个泡")));
 }

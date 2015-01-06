@@ -46,32 +46,32 @@ RESOURCES += \
     chatwindow.qrc \
     friendinfo.qrc
 #USED BY GDX
-#INCLUDEPATH += C:\OpenCV\bin\install\include  \
-#C:\OpenCV\bin\install\include\opencv  \
-#C:\OpenCV\bin\install\include\opencv2
-#LIBS += -L"C:\OpenCV\bin\install\x64\mingw\bin"
-#LIBS += -lopencv_core249 -lopencv_highgui249 -lopencv_imgproc249 -lopencv_features2d249
-#-lopencv_calib3d249
+INCLUDEPATH += C:\OpenCV\bin\install\include  \
+C:\OpenCV\bin\install\include\opencv  \
+C:\OpenCV\bin\install\include\opencv2
+LIBS += -L"C:\OpenCV\bin\install\x64\mingw\bin"
+LIBS += -lopencv_core249 -lopencv_highgui249 -lopencv_imgproc249 -lopencv_features2d249
+-lopencv_calib3d249
 
 
 
 #USED BY YOUNG
-INCLUDEPATH += D:\opencv\build\include\opencv\
-               D:\opencv\build\include\opencv2\
-               D:\opencv\build\include
+#INCLUDEPATH += D:\opencv\build\include\opencv\
+#               D:\opencv\build\include\opencv2\
+#               D:\opencv\build\include
 
-LIBS += D:\opencv\MinGW\lib\libopencv_calib3d249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_contrib249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_core249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_features2d249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_flann249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_gpu249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_highgui249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_imgproc249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_legacy249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_ml249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_objdetect249.dll.a\
-        D:\opencv\MinGW\lib\libopencv_video249.dll.a
+#LIBS += D:\opencv\MinGW\lib\libopencv_calib3d249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_contrib249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_core249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_features2d249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_flann249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_gpu249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_highgui249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_imgproc249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_legacy249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_ml249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_objdetect249.dll.a\
+#        D:\opencv\MinGW\lib\libopencv_video249.dll.a
 
 
 

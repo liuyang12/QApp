@@ -137,6 +137,8 @@ signals:
     void disconnectedSignal(void);
 
     void FriendInfoSignal(FriendInfo);//好友信息
+
+    void newlogIcon();
 };
 
 #endif // QAPPWINDOW_H

@@ -1283,4 +1283,6 @@ void QAppWindow::on_logout_clicked()
     tcplink->userInfo.account = tcplink->loginInfo.account;
 //    tcplink->requestKind = LOGOUT;
     tcplink->logoutRequest(tcplink->userInfo);
+    delete MainIcon;
+    emit newlogIcon();
 }
