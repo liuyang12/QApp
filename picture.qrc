@@ -22,5 +22,6 @@
         <file>picture/yellow.jpg</file>
         <file>picture/qq.png</file>
         <file>picture/Mushroomoffline.ico</file>
+        <file>picture/login_timeout.png</file>
     </qresource>
 </RCC>

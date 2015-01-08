@@ -327,7 +327,7 @@ void QAppWindow::initStatus()
     // 接收TCP Socket 通信返回信息信号与 this 的槽相连
     connect(tcplink, SIGNAL(newReplySignal(qint32)), this, SLOT(newReply(qint32)));
     connect(tcplink, SIGNAL(travelsalReplySignal(qint32)), this, SLOT(travelsalReply(qint32))); // 好友遍历回复
-    connect(tcplink, SIGNAL(connectionFailedSignal()), this, SLOT(initStatus()));
+//    connect(tcplink, SIGNAL(connectionFailedSignal()), this, SLOT(initStatus()));
     connect(tcplink, SIGNAL(disconnectedSignal()), this, SLOT(serverDisconnected()));
 
 }
@@ -427,7 +427,7 @@ void QAppWindow::newReply(qint32 replyKind)
         break;
     case NO_REPLY:
         qDebug() << "用户" << tcplink->friendInfo.account << "查找结果：未收到服务器回复";
-        QMessageBox::information(this, tr("info"), tr("未收到回复"), QMessageBox::Ok);
+//        QMessageBox::information(this, tr("info"), tr("未收到回复"), QMessageBox::Ok);
         break;
     /** 登出结果 */
     case LOGOUT_SUCCESS:
@@ -639,6 +639,8 @@ void QAppWindow::addfriendinfo()
 // 查找好友请求
 void QAppWindow::on_Button_queryFriend_clicked()
 {
+    RefreshTimer->stop();       // 暂停刷新好友状态定时器，以防影响到查找好友
+    connect(tcplink->tcpClient, SIGNAL(readyRead()), tcplink, SLOT(readResult()));  // 重新连接信号和槽
     if(ui->Edit_FriendAccount->text().isEmpty() || ui->Edit_FriendAccount->text() == "2012011")
     {
         QMessageBox::critical(this, tr("ERROR"), tr("好友账号不能为空"), QMessageBox::Ok);
@@ -647,14 +649,18 @@ void QAppWindow::on_Button_queryFriend_clicked()
     tcplink->friendInfo.account = ui->Edit_FriendAccount->text();
 //    tcplink->requestKind = QUERY;
     tcplink->queryRequest(tcplink->friendInfo);
+    RefreshTimer->start(10000); // 重启定时器
 }
 // 登出请求
 void QAppWindow::on_action_Logout_triggered()
 {
+    RefreshTimer->stop();       // 暂停刷新好友状态定时器，以防影响到登出请求
+    connect(tcplink->tcpClient, SIGNAL(readyRead()), tcplink, SLOT(readResult()));  // 重新连接信号和槽
     tcplink->userInfo.status = tcplink->loginInfo.status = OFFLINE;
     tcplink->userInfo.account = tcplink->loginInfo.account;
 //    tcplink->requestKind = LOGOUT;
     tcplink->logoutRequest(tcplink->userInfo);
+    RefreshTimer->start(10000); // 重启定时器
 }
 
 

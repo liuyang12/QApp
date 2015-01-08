@@ -286,6 +286,8 @@ void TCPLink::recieveData()
    int friendNumber;
    qba = friendInfo.tcpSocket->readAll();
    Reply = QVariant(qba).toString();
+   if(Reply.isEmpty())
+       return ;
    qDebug() << Reply;
    if(Reply.left(10) == "groupchat_")       // 好友发出群聊请求
    {
@@ -486,6 +488,8 @@ void TCPLink::readResult()
     case LOGOUT:
         qba = tcpClient->readAll();
         Reply = QVariant(qba).toString();
+        if(Reply.isEmpty())
+            return ;
         break;
     case MESSAGE:
         if(blockSize == 0)
@@ -557,7 +561,7 @@ void TCPLink::readResult()
         }
         else
         {
-            replyKind = FRIEND_NO_ACCOUNT;
+//            replyKind = FRIEND_NO_ACCOUNT;
             friendInfo.status = OFFLINE;
         }
         break;
@@ -642,8 +646,10 @@ void TCPLink::displayError(QAbstractSocket::SocketError socketError)
         emit connectionFailedSignal();
         break;
     default:
-        QMessageBox::information(NULL, tr("Client"),
-            tr("For unknown reasons, connected failed"));
+        replyKind = TIMEOUT;
+        emit newReplySignal(replyKind);
+//        QMessageBox::information(NULL, tr("Client"),
+//            tr("For unknown reasons, connected failed"));
         emit connectionFailedSignal();
     }
 }
@@ -665,7 +671,7 @@ void TCPLink::queryRequest(FriendInfo &frd/* = friendInfo*/)
 {
     requestKind = QUERY;
     friendInfo = frd;
-    TCPLink::reconnectfriendSocket();       // 只要更新了 friendInfo.tcpSocket 就重新连接
+//    TCPLink::reconnectfriendSocket();       // 只要更新了 friendInfo.tcpSocket 就重新连接
     newConnect();
 }
 // 登出请求
@@ -788,7 +794,7 @@ int TCPLink::confirmFriendOnline(QString &account)
         connect(tcpClient, SIGNAL(readyRead()), this, SLOT(readResult()));   // 恢复 disconnect
 
     }
-    connect(tcpClient, SIGNAL(readyRead()), this, SLOT(readResult()));   // 恢复 disconnect
+//    connect(tcpClient, SIGNAL(readyRead()), this, SLOT(readResult()));   // 恢复 disconnect
 }
 
 // 遍历所有好友请求
@@ -826,7 +832,7 @@ bool TCPLink::travelsalRequest(void)
             QueryInfo = "q" + tempfriend.account;
             qDebug() << QueryInfo;
             tcpClient->write(QueryInfo.toStdString().c_str());
-            if(tcpClient->waitForReadyRead(500))   // 等待数据可读 500ms超时
+            if(tcpClient->waitForReadyRead(1000))   // 等待数据可读 1000ms超时
             {   // 有数据
                 isConnected = true;
                 QByteArray qba;

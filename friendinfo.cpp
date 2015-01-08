@@ -148,11 +148,18 @@ void friendinfo::on_confirm_button_clicked()
             QSqlQuery q;
             QString oldmembers;
             oldmembers = qr.value(2).toString();
+            QStringList tempList = oldmembers.split(' ');
+            for(int i = 0; i < tempList.size(); i++)
+            {
+                if(tempList[i] == tcplink->friendInfo.account)
+                    continue;
+            }
 //            q.prepare("update friends set IP = :IP where account = :account");
             q.prepare("update groups set members = :members where name = :name");
             q.bindValue(":name", currGroup);
             q.bindValue(":members", oldmembers + " " + tcplink->friendInfo.account);    // 在最后增加一个成员，以空格间隔
             q.exec();
+            qDebug() << oldmembers + " " + tcplink->friendInfo.account;
             groupexist =true;
         }
     }
@@ -201,6 +208,7 @@ void friendinfo::getCell(int row,int col)
     ui->tableWidget->setVisible(flag_tx );
     ui->tx->setStyleSheet(QString("border-image: url(%1);").arg(s));
     tcplink->friendInfo.avatar = s; // 设置好友头像
+    qDebug() << s;
 
 }
 

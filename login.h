@@ -76,6 +76,8 @@ private slots:
     void IconClicked(QSystemTrayIcon::ActivationReason reason);
     //void changeEvent(QEvent *event);
 
+    void on_toolButton_clicked();
+
 private:
     Ui::login *ui;
 //    qint16 blockSize;

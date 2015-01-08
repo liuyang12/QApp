@@ -26,6 +26,8 @@ login::login(QWidget *parent) :
     serverNode.hostAddr = "166.111.180.60";
     serverNode.hostPort = 8000;
 
+    this->resize(430, 330);
+
     //gif显示
     QMovie*movie=new QMovie(":picture/0.gif");
     ui->giflable->setMovie(movie);
@@ -212,6 +214,9 @@ void login::newReply(qint32 replyKind)
     /*      */
     QAppWindow *qapp;
     switch (replyKind) {
+    case TIMEOUT:   // 与服务器连接超时
+        this->resize(430, 370);
+        break;
     case LOGIN_SUCCESS:
         loginInfo.status = ONLINE;
         qDebug() << "用户" << loginInfo.account << "登录成功";
@@ -326,4 +331,9 @@ void login::newIcon()
     loginIcon->setIcon(icon);
     loginIcon->show();
     loginIcon->showMessage(QString(tr("提示")),QString(tr("冒个泡")));
+}
+
+void login::on_toolButton_clicked()
+{
+    this->resize(430, 330); // 登录界面重新缩小
 }
