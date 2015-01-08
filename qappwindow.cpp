@@ -827,6 +827,7 @@ void QAppWindow::build_tree()
 //    QTreeWidgetItem *friend1 = new QTreeWidgetItem(group,QStringList(QString(" weijie")));
 //    friend1->setIcon(0,QIcon(":/picture/tx1.jpg"));
     ui->treeWidget->expandAll(); //结点全部展开
+    QAppWindow::refresh();
     return;
     //db.close();
 }
@@ -944,10 +945,16 @@ void QAppWindow::refresh()
             {
                 if(fri.value(1).toString() == sid_s)
                 {
+                    QString iconstr = fri.value(3).toString();
                     if(fri.value(5).toInt()==1)
-                        frienditem->setIcon(0,QIcon(fri.value(3).toString()));//在线头像
+                        frienditem->setIcon(0,QIcon(iconstr));//在线头像
                     if(fri.value(5).toInt()==0)
-                        frienditem->setIcon(0,QIcon(fri.value(8).toString()));//不在线头像
+                    {
+                        QStringList strlist = iconstr.split('/');
+                        strlist[strlist.size()-1] = "_" + strlist[strlist.size()-1];
+                        iconstr =  strlist.join('/');
+                        frienditem->setIcon(0,QIcon(iconstr));//不在线头像
+                    }
                 }
             }
         }

@@ -18,5 +18,17 @@
         <file>friendinfo/success.png</file>
         <file>friendinfo/deepbule.jpg</file>
         <file>friendinfo/lessbule.jpg</file>
+        <file>friendinfo/_tx.jpg</file>
+        <file>friendinfo/_tx0.jpg</file>
+        <file>friendinfo/_tx1.jpg</file>
+        <file>friendinfo/_tx2.jpg</file>
+        <file>friendinfo/_tx3.jpg</file>
+        <file>friendinfo/_tx4.jpg</file>
+        <file>friendinfo/_tx5.jpg</file>
+        <file>friendinfo/_tx6.jpg</file>
+        <file>friendinfo/_tx7.jpg</file>
+        <file>friendinfo/_tx8.jpg</file>
+        <file>friendinfo/_tx9.jpg</file>
+        <file>friendinfo/_tx10.jpg</file>
     </qresource>
 </RCC>
