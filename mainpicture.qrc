@@ -26,5 +26,18 @@
         <file>mainpicture/tx.jpg</file>
         <file>mainpicture/group.ico</file>
         <file>mainpicture/Mushroomonline.ico</file>
+        <file>mainpicture/_tx2.jpg</file>
+        <file>mainpicture/_tx5.jpg</file>
+        <file>mainpicture/_tx7.jpg</file>
+        <file>mainpicture/_tx8.jpg</file>
+        <file>mainpicture/_tx9.jpg</file>
+        <file>mainpicture/_tx10.jpg</file>
+        <file>mainpicture/tx0.jpg</file>
+        <file>mainpicture/tx2.jpg</file>
+        <file>mainpicture/tx5.jpg</file>
+        <file>mainpicture/tx7.jpg</file>
+        <file>mainpicture/tx8.jpg</file>
+        <file>mainpicture/tx9.jpg</file>
+        <file>mainpicture/tx10.jpg</file>
     </qresource>
 </RCC>
