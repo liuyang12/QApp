@@ -1285,10 +1285,13 @@ void QAppWindow::RefreshFriendsStatus()
 //退出帐号
 void QAppWindow::on_logout_clicked()
 {
+    RefreshTimer->stop();       // 暂停刷新好友状态定时器，以防影响到登出请求
+    connect(tcplink->tcpClient, SIGNAL(readyRead()), tcplink, SLOT(readResult()));  // 重新连接信号和槽
     tcplink->userInfo.status = tcplink->loginInfo.status = OFFLINE;
     tcplink->userInfo.account = tcplink->loginInfo.account;
 //    tcplink->requestKind = LOGOUT;
     tcplink->logoutRequest(tcplink->userInfo);
+    RefreshTimer->start(10000); // 重启定时器
     delete MainIcon;
     emit newlogIcon();
 }
