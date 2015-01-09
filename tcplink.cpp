@@ -95,6 +95,13 @@ void TCPLink::acceptConnection()
 //    {
         // 当有客户来访时，将tcpSocket接受tcpServer建立的socket
         loginInfo.request = GET_FRIEND;
+        if(requestKind == CONNECT && friendInfo.isConnected)
+        {
+            qDebug() << "正在尝试与好友" << friendInfo.account << "暂不接受该好友的连接";
+            friendInfo.tcpSocket = friendInfo.tcpSocket;
+            TCPLink::reconnectfriendSocket();
+            return ;
+        }
         friendInfo.tcpSocket = tcpServer->nextPendingConnection();
         TCPLink::reconnectfriendSocket();   // 只要 friendInfo.tcpSocket 改变，重新连接信号和槽
         friendInfo.node.hostAddr = friendInfo.tcpSocket->peerAddress().toString();   // 获取客户端IP地址
@@ -187,8 +194,10 @@ void TCPLink::newTCPConnection()
         friendInfo.tcpSocket->abort();  // 解决为什么经常在这里出现 bug
         friendInfo.tcpSocket->connectToHost(friendInfo.node.hostAddr, getPortNumber(friendInfo.account) /*friendInfo.node.hostPort*/); // 连接到 待加好友服务器，IP地址为回复，端口号为好友账号后四位
         qDebug() << "connect to host: IP " << friendInfo.node.hostAddr << " port " << getPortNumber(friendInfo.account);
-        if(friendInfo.tcpSocket->waitForConnected(500)) // 等待 500ms发送请求
-            TCPLink::sendData();
+//        if(TCPLink::waitfor)
+            if(friendInfo.tcpSocket->waitForConnected(1000)) // 等待 1000ms发送请求
+                TCPLink::sendData();
+//        reconnectfriendSocket();
 //        if(-1 == friendNumber)  // 还不是好友，需要接下来发送好友请求
 //        {
 //            return ;
@@ -237,7 +246,9 @@ void TCPLink::newTCPConnection()
     {
 //        if(-1 == friendNumber || START_CHAT == requestKind)
 //        if(requestKind != CONNECT)
-            TCPLink::sendData();    // 只有还不是好友，才发送好友请求
+//        if(requestKind == CONNECT && friendInfo.isConnected == true)
+//            return ;    // 若已经连接则不发出连接请求
+        TCPLink::sendData();    // 只有还不是好友，才发送好友请求
     }
 
 }
@@ -259,11 +270,18 @@ void TCPLink::sendData()
 
         break;
     case CONNECT:           // 发出连接请求 "connect_$account"
-        friendInfo.tcpSocket->write(QString("connect_"+loginInfo.account).toStdString().c_str());
-        qDebug() << tr("connect_") << loginInfo.account;
-        friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
-        friendVect[friendNumber].isConnected = true;    // 已经连接
-
+        if(friendNumber > 0 && friendVect[friendNumber].isConnected == true)      // 若已经建立连接，则不再连接
+        {
+            qDebug() << "已与好友" << friendInfo.account << "建立连接";
+        }
+        else    // 还未连接，发起连接
+        {
+            friendInfo.tcpSocket->write(QString("connect_"+loginInfo.account).toStdString().c_str());
+            qDebug() << tr("connect_") << loginInfo.account;
+            friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
+            friendVect[friendNumber].isConnected = true;    // 已经连接
+            emit friendTCPSocketSignal();   // 发出好友信号连接信号
+        }
         break;
     case GROUP_CHAT:        // 发出群聊请求 "groupchat_$account_$1_$2_$3"
         friendInfo.tcpSocket->write(QString("groupchat_"+groupString).toStdString().c_str());
@@ -312,6 +330,7 @@ void TCPLink::recieveData()
                friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
                friendVect[friendNumber].isConnected = friendInfo.isConnected;
                friendVect[friendNumber].node.hostAddr = friendVect[friendNumber].node.hostAddr;
+               emit friendTCPSocketSignal();   // 发出好友信号连接信号
            }
            replyKind = GROUPCHAT_REQUEST;       // 群聊请求
        }
@@ -333,11 +352,15 @@ void TCPLink::recieveData()
         {
             qDebug() << "亲爱的" << friendVect[findAccount(loginInfo.account)].name << "，目前还不支持同一账号多客户端登陆哦~\n您可以等待我们的更新，谢谢！";
         }
-        else
+        else if(!friendVect[friendNumber].isConnected)  // 还未连接，重新建立连接
         {
             friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
             friendVect[friendNumber].isConnected = friendInfo.isConnected;
-            friendVect[friendNumber].node.hostAddr = friendVect[friendNumber].node.hostAddr;
+            friendVect[friendNumber].node.hostAddr = friendInfo.node.hostAddr;
+        }
+        else    // 是好友但是已经建立连接则保持原有连接
+        {
+
         }
         replyKind = CONNECT_REQUEST;
    }
@@ -361,7 +384,7 @@ void TCPLink::recieveData()
        {
            friendVect[friendNumber].tcpSocket = friendInfo.tcpSocket;
            friendVect[friendNumber].isConnected = friendInfo.isConnected;
-           friendVect[friendNumber].node.hostAddr = friendVect[friendNumber].node.hostAddr;
+           friendVect[friendNumber].node.hostAddr = friendInfo.node.hostAddr;
        }
        replyKind = STARTCHAT_REQUEST;   // 发起聊天请求
    }
@@ -1026,6 +1049,8 @@ void TCPLink::startChatRequest()
 void TCPLink::connectRequest()
 {
     requestKind = CONNECT;
+    TCPLink::waitfor = false;
+    TCPLink::reconnectfriendSocket();
     TCPLink::newTCPConnection();
 }
 // 群聊请求
@@ -1033,6 +1058,8 @@ void TCPLink::groupChatRequest(QString groupStr)
 {
     requestKind = GROUP_CHAT;
     groupString = groupStr;
+    TCPLink::waitfor = true;
+//    TCPLink::reconnectfriendSocket();
     TCPLink::newTCPConnection();
 }
 
@@ -1057,7 +1084,11 @@ void TCPLink::startGroupChat(QVector<int> friendNo)
         {
             if(!friendVect[friendNo[i]].isConnected)   // 如果还未连接则进行连接
             {
+//                friendInfo.account = friendVect[friendNo[i]].account;
+//                friendInfo.node.hostAddr = friendVect[friendNo[i]].node.hostAddr;
+//                friendInfo.isConnected = friendVect[friendNo[i]].isConnected;
                 friendInfo = friendVect[friendNo[i]];
+//                reconnectfriendSocket();
                 groupChatRequest(groupString); // 向每一位好友发出群聊请求
             }
         }

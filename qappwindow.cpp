@@ -455,7 +455,8 @@ void QAppWindow::newReply(qint32 replyKind)
         friendNo.clear();
         for(int i = 0; i < accountList.size(); i++)
         {
-            friendNo.push_back(tcplink->findAccount(accountList[i]));
+            if(accountList[0] != 0 && accountList[i] != tcplink->friendVect[0].account)    // 不是自己
+                friendNo.push_back(tcplink->findAccount(accountList[i]));
         }
         // 打开群聊窗口
         chatNumber = findChatWindow(friendNo);
@@ -760,6 +761,11 @@ void QAppWindow::displayError(QAbstractSocket::SocketError) //错误处理
 
 void QAppWindow::on_closeButton_clicked()
 {
+    for(int i = 0; i < chatVect.size(); i++)
+    {
+        chatVect[i]->close();
+    }
+    QAppWindow::on_logout_clicked();    // 登出
 //    this->hide();   // 隐藏而不是直接关闭
     this->close();
 }
@@ -947,12 +953,13 @@ void QAppWindow::refresh()
                 {
                     QString iconstr = fri.value(3).toString();
                     if(fri.value(5).toInt()==1)
+                    {
                         frienditem->setIcon(0,QIcon(iconstr));//在线头像
+                    }
+
                     if(fri.value(5).toInt()==0)
                     {
-                        QStringList strlist = iconstr.split('/');
-                        strlist[strlist.size()-1] = "_" + strlist[strlist.size()-1];
-                        iconstr =  strlist.join('/');
+                        iconstr = onlineAvatartooffline(iconstr);   // 转化为不在线头像
                         frienditem->setIcon(0,QIcon(iconstr));//不在线头像
                     }
                 }
@@ -1062,7 +1069,7 @@ void QAppWindow::groupchatDoubleClicked(QTreeWidgetItem *item, int column)
     int chatNumber;
     for(int i = 0; i < groupList.size(); i++)
     {
-        if(groupList[i].size() == 10 && groupList[i] != tcplink->loginInfo.account)    // 是学号且不是自己
+        if(groupList[i].size() == 10 && groupList[i] != tcplink->friendVect[0].account)    // 是学号且不是自己
             friendNo.push_back(tcplink->findAccount(groupList[i]));
     }
     //打开群聊窗口chatwindow

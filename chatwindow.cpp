@@ -4,6 +4,7 @@
 #include "tcplink.h"
 #include <algorithm>
 #include <QIcon>
+#include <QTimer>
 #include <QDir>
 
 extern TCPLink *tcplink;           // tcplink 全局变量
@@ -98,6 +99,7 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
                 "border-radius:8px;"
                               );
         ui->nickname->setText(tcplink->friendVect[friendNo[0]].name);
+        this->setWindowTitle(tcplink->friendVect[friendNo[0]].name);
     }
     else /* friendNo.size() > 1 */  // 群聊
     {
@@ -112,13 +114,11 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
         {
             group += tcplink->friendVect[friendNo[i]].name + "、";
         }
-        if(beStarter)
-        {
-            group += tcplink->friendVect[0].name;
-        }
-        else
-            group.resize(group.size()-1);   //去掉最后一个字符串
+        group += tcplink->friendVect[0].name;
+//        else
+//            group.resize(group.size()-1);   //去掉最后一个字符串
         ui->nickname->setText(group);
+        this->setWindowTitle(group);
 
     }
 //    lastSpeaker = "";
@@ -153,18 +153,50 @@ chatWindow::chatWindow(QVector<int> frNo, bool beStarter, QWidget *parent):
             ui->treeWidget->setStyleSheet("QTreeWidget::item{height:20px}");
             ui->treeWidget->setIconSize(QSize(20,20));
             //建树
-            QTreeWidgetItem * item[50];
             int i = 0;
-            item[0] = new QTreeWidgetItem(ui->treeWidget,QStringList("群成员"));
-            for(i = 1; i <= friendNo.size() ; i++)
+            if(friendNo.size() == 1)    // 私聊
             {
+                i = 1;
+                item[0] = new QTreeWidgetItem(ui->treeWidget,QStringList("好友"));
                 QString name = tcplink->friendVect[friendNo[i-1]].name;
                 QString account = tcplink->friendVect[friendNo[i-1]].account;
                 QString avatar = tcplink->friendVect[friendNo[i-1]].avatar;
+                if(tcplink->friendVect[friendNo[i-1]].status == OFFLINE)
+                {
+                    avatar = onlineAvatartooffline(avatar);     // 转化为离线头像
+                }
+                item[i] = new QTreeWidgetItem(item[0],QStringList(name+"("+account+")"));//建组名的父节点
+                item[i]->setIcon(0,QIcon(avatar));
+                ui->treeWidget->setVisible(false);
+            }
+            else
+            {
+                item[0] = new QTreeWidgetItem(ui->treeWidget,QStringList("群成员"));
+                for(i = 1; i <= friendNo.size() ; i++)
+                {
+                    QString name = tcplink->friendVect[friendNo[i-1]].name;
+                    QString account = tcplink->friendVect[friendNo[i-1]].account;
+                    QString avatar = tcplink->friendVect[friendNo[i-1]].avatar;
+                    if(tcplink->friendVect[friendNo[i-1]].status == OFFLINE)
+                    {
+                        avatar = onlineAvatartooffline(avatar);     // 转化为离线头像
+                    }
+                    item[i] = new QTreeWidgetItem(item[0],QStringList(name+"("+account+")"));//建组名的父节点
+                    item[i]->setIcon(0,QIcon(avatar));
+                }
+                QString name = tcplink->friendVect[0].name;
+                QString account = tcplink->friendVect[0].account;
+                QString avatar = tcplink->friendVect[0].avatar;
+                if(tcplink->friendVect[0].status == OFFLINE)
+                {
+                    avatar = onlineAvatartooffline(avatar);     // 转化为离线头像
+                }
                 item[i] = new QTreeWidgetItem(item[0],QStringList(name+"("+account+")"));//建组名的父节点
                 item[i]->setIcon(0,QIcon(avatar));
             }
+
             ui->treeWidget->expandAll(); //结点全部展开
+            connect(tcplink, SIGNAL(friendstatusChangedSignal()), this, SLOT(refreshTree()));   // 捕捉到好友状态改变的消息
 
 //        }
     //    lastSpeaker = "";
@@ -299,11 +331,27 @@ bool chatWindow::operator ==(const chatWindow &chat)
     return (friendNoEqual(friendNo, chat.friendNo));
 }
 
+void chatWindow::friendTCPSocket()
+{
+    int friendNumber = tcplink->findAccount(tcplink->friendInfo.account);
+    if(friendNumber > 0)
+    {
+        disconnect(tcplink->friendVect[friendNumber].tcpSocket, SIGNAL(readyRead()), tcplink, SLOT(recieveData()));
+        disconnect(tcplink->friendVect[friendNumber].tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), tcplink, SLOT(displayError(QAbstractSocket::SocketError)));
+        // 连接所有在线好友的 TCPSocket
+        connect(tcplink->friendVect[friendNumber].tcpSocket, SIGNAL(readyRead()), this, SLOT(readMessage()));        // 只要有可读消息，则读取所有好友的消息
+        connect(tcplink->friendVect[friendNumber].tcpSocket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(displaySocketError(QAbstractSocket::SocketError)));
+    }
+
+}
+
 // 初始化 TCPSocket 通信
 void chatWindow::initSocket()
 {
+    connect(tcplink, SIGNAL(friendTCPSocketSignal()), this, SLOT(friendTCPSocket()));
+    tcplink->disconnectfriendSocket();
     FriendInfo tmpfriend;   // 临时转存
-    tmpfriend = tcplink->friendInfo;    // 首先保存临时好友信息
+//    tmpfriend = tcplink->friendInfo;    // 首先保存临时好友信息
     HeadString = "";
     qDebug() << friendNo;
     for(int i = 0; i < friendNo.size(); i++)
@@ -319,7 +367,12 @@ void chatWindow::initSocket()
             {
                 if(!tcplink->friendVect[friendNo[i]].isConnected)   // 如果还未连接则进行连接
                 {
+//                    tcplink->friendInfo.account = tcplink->friendVect[friendNo[i]].account;
+//                    tcplink->friendInfo.node.hostAddr = tcplink->friendVect[friendNo[i]].node.hostAddr;
+//                    tcplink->friendInfo.isConnected = false;
+
                     tcplink->friendInfo = tcplink->friendVect[friendNo[i]];
+//                    tcplink->reconnectfriendSocket();
                     tcplink->connectRequest();
                 }
             }
@@ -510,6 +563,25 @@ void chatWindow::readMessage()
 //            qDebug() << recieveString;
             blockSize = 0;  // 重新归零
             // 将接收到的消息显示在输出框
+            if(beStarter)
+            {
+                for(int k = 0; k < friendNo.size(); k++)
+                {
+                    if(k != i && ONLINE == tcplink->friendVect[friendNo[k]].status)
+                    {
+                        QByteArray block;
+                        QDataStream out(&block, QIODevice::WriteOnly);
+                        out.setVersion(QDataStream::Qt_5_3);
+
+                        out << (qint16)0;   // 预存数据大小
+                        out << recieveString;        // 发送消息
+                        out.device()->seek(0);  // 回到首部
+                        out << (qint16)(block.size() - sizeof(qint16));
+                            // 每次使用 tcpSocket 需要确保在线
+                        tcplink->friendVect[friendNo[k]].tcpSocket->write(block);
+                    }
+                }
+            }
             chatWindow::appendShowLine(tcplink->friendVect[friendNo[i]].account);
         }
     }
@@ -675,7 +747,7 @@ void chatWindow::SpeechTransfer()
                 tempMess = "SP_ACPT";
                 TranSpeech.SpeechSocket->write(tempMess);
                 TranSpeech.SpeechConnected = 2;
-                ui->SpeechButton->setText(tr("关闭语音"));
+//                ui->SpeechButton->setText(tr("关闭语音"));
                 TranSpeech.buffer_in = TranSpeech.audio_in->start();
                 connect(TranSpeech.buffer_in,SIGNAL(readyRead()),this,SLOT(readSpeech()));
                 TranSpeech.buffer_out = TranSpeech.audio_out->start();
@@ -699,8 +771,8 @@ void chatWindow::SpeechTransfer()
                 tempMess = "VI_ACPT";
                 TranSpeech.SpeechSocket->write(tempMess);
                 TranSpeech.SpeechConnected = 2;
-                ui->VideoButton->setText(tr("关闭视频"));
-                ui->SpeechButton->setText(tr("关闭语音"));
+//                ui->VideoButton->setText(tr("关闭视频"));
+//                ui->SpeechButton->setText(tr("关闭语音"));
                 TranSpeech.buffer_in = TranSpeech.audio_in->start();
                 connect(TranSpeech.buffer_in,SIGNAL(readyRead()),this,SLOT(readSpeech()));
                 TranSpeech.buffer_out = TranSpeech.audio_out->start();
@@ -771,8 +843,8 @@ void chatWindow::SpeechServerClose()
     if(TranSpeech.SpeechConnected)
     {
         TranSpeech.SpeechConnected = 0;
-        ui->VideoButton->setText(tr("开启视频"));
-        ui->SpeechButton->setText(tr("开启语音"));
+//        ui->VideoButton->setText(tr("开启视频"));
+//        ui->SpeechButton->setText(tr("开启语音"));
         TranSpeech.audio_in->stop();
         TranSpeech.audio_out->stop();
         videoTrans->close();
@@ -847,7 +919,7 @@ void chatWindow::MediaOpen(int choice)
     {
         TranSpeech.SpeechConnected = 0;             //连接状态按下则关闭
         TranSpeech.SpeechSocket->disconnectFromHost();
-        ui->SpeechButton->setText(tr("开启语音"));
+//        ui->SpeechButton->setText(tr("开启语音"));
         TranSpeech.audio_in->stop();
         TranSpeech.audio_out->stop();
     }
@@ -1013,4 +1085,39 @@ void chatWindow::on_recordButton_clicked()
 //        ui->record->setVisible(false);
         this->resize(581,546);
     }
+}
+//
+void chatWindow::refreshTree()
+{
+    //建树
+//    QTreeWidgetItem * item[50];
+    int i = 0;
+    if(friendNo.size() == 1)    // 私聊
+    {
+        if(tcplink->friendVect[0].status == OFFLINE)
+            item[1]->setIcon(0,QIcon(onlineAvatartooffline(tcplink->friendVect[friendNo[0]].avatar)));
+        else
+            item[1]->setIcon(0,QIcon(tcplink->friendVect[friendNo[0]].avatar));
+    }
+    else
+    {
+        for(i = 1; i <= friendNo.size() ; i++)
+        {
+            QString avatar = tcplink->friendVect[friendNo[i-1]].avatar;
+            if(tcplink->friendVect[friendNo[i-1]].status == OFFLINE)
+            {
+                avatar = onlineAvatartooffline(avatar);     // 转化为离线头像
+            }
+            item[i]->setIcon(0,QIcon(avatar));
+        }
+        QString avatar = tcplink->friendVect[0].avatar;
+        if(tcplink->friendVect[0].status == OFFLINE)
+        {
+            avatar = onlineAvatartooffline(avatar);     // 转化为离线头像
+        }
+//        item[i] = new QTreeWidgetItem(item[0],QStringList(name+"("+account+")"));//建组名的父节点
+        item[i]->setIcon(0,QIcon(avatar));
+    }
+
+    ui->treeWidget->expandAll(); //结点全部展开
 }

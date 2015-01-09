@@ -27,9 +27,11 @@ public:
     QVector<int> friendNo;  // 聊天窗口中的所有好友的编号，通过这个与 friendVect[] 获取好友的TCPSocket 进而进行聊天，默认其中包含自己，但是不显式表示出来 friendNo[0] 是第一个好友的编号，而不是自己
     void initWindowHead(void );     // 设置窗口标题和头像
     void initSocket(void );     // 初始化 TCPSocket 通信
+
     bool operator ==(const chatWindow &chat);   // 重载等号运算符，如果两个窗口 friendNo 一致（不考虑序号）则两个窗口是同一个窗口
     bool flag;
     bool flag_record;
+    QTreeWidgetItem * item[50];
 
 private:
     Ui::chatWindow *ui;
@@ -53,6 +55,8 @@ protected:
 
 public slots:
     void GetFriendInfo(FriendInfo); //获取好友信息
+    void friendTCPSocket(void);     // 好友 TCPSocket 连接槽
+    void refreshTree(void);         // 当好友状态改变时刷新好友信息树
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
 

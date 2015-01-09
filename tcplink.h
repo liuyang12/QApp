@@ -25,6 +25,8 @@ public:
     qint32 replyKind;       // 应答类型
     QString groupString;       // 群聊字符串
 
+    bool waitfor;           // 等待连接，好友连接时为false，群聊请求时为ture
+
 //    QString replyStr;       // 应答字符串
 
     UserInfo userInfo;      // 用户信息
@@ -79,6 +81,7 @@ signals:
     void connectionFailedSignal();          // 连接失败信号
     void disconnectedSignal();              // 断开连接信号
     void friendstatusChangedSignal();       // 好友在线状态改变信号
+    void friendTCPSocketSignal();           // 好友消息连接
 
 public slots:
     void sendRequest();         // 向服务器发送信息

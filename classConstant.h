@@ -246,8 +246,15 @@ struct Speech
 #define GET_PORTNUMBER
 inline quint16 getPortNumber(QString account)
 {
-    return (account.right(4).toUInt());     // 截取后4位作为服务器端口号
+    return (account.right(5).toUInt());     // 截取后5位作为服务器端口号
 }
+inline QString onlineAvatartooffline(QString avatar)
+{
+    QStringList strlist = avatar.split('/');
+    strlist[strlist.size()-1] = "_" + strlist[strlist.size()-1];
+    return(strlist.join('/'));
+}
+
 #endif // GET_PORTNUMBER
 
 #endif // CLASSCONSTANT_H

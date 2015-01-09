@@ -45,6 +45,9 @@ RESOURCES += \
     mainpicture.qrc \
     chatwindow.qrc \
     friendinfo.qrc
+
+RC_FILE = myicon.rc
+
 #USED BY GDX
 #INCLUDEPATH += C:\OpenCV\bin\install\include  \
 #C:\OpenCV\bin\install\include\opencv  \

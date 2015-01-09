@@ -39,6 +39,7 @@ void Video::ReadOwnFrame()
 {
     ImageFrame = cvQueryFrame(Camera);
     //帧格式转换为QImage
+    cvCvtColor(ImageFrame, ImageFrame, CV_BGR2RGB);
     QImage img((const uchar*)ImageFrame->imageData,ImageFrame->width,ImageFrame->height,QImage::Format_RGB888);
     //OwnVideoLabel作为显示
     ui->OwnVideoLabel->setPixmap(QPixmap::fromImage(img));
@@ -74,6 +75,8 @@ void Video::ReadPeerFrame()
 //拍照并指定图片存储位置
 void Video::PhotoGraph()
 {
+//    IplImage rgb;
+    cvCvtColor(ImageFrame, ImageFrame, CV_BGR2RGB);
     QImage image((const uchar*)ImageFrame->imageData,ImageFrame->width,ImageFrame->height,QImage::Format_RGB888);
     QString FileName = QFileDialog::getSaveFileName(this, tr("Save File"),
                        ".",tr("Images (*.png)"));
@@ -102,8 +105,9 @@ void Video::on_TakeCameraButton_clicked()
 //关闭
 void Video::on_CloseCameraButton_clicked()
 {
-    CloseCamera();
-    emit closeMedia(2);
+//    CloseCamera();
+//    emit closeMedia(2);
+    this->close();
 }
 
 

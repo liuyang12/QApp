@@ -241,7 +241,7 @@ void login::newReply(qint32 replyKind)
     case LOGIN_WRONG_INPUT:
         loginInfo.status = OFFLINE;
         qDebug() << "用户" << loginInfo.account << "账号或密码错误\n请重新输入。。。";
-        QMessageBox::information(this, tr("info"), tr("账号或密码错误\n请重新输入。。。"));
+//        QMessageBox::information(this, tr("info"), tr("账号或密码错误\n请重新输入。。。"));
         break;
     case HAVE_LOGINED:
         // 监测用户是否已经登录
@@ -316,6 +316,9 @@ void login::IconClicked(QSystemTrayIcon::ActivationReason reason)
         {
             this->hide();
         }
+        break;
+    case QSystemTrayIcon::MiddleClick:
+
         break;
     default:
         break;
